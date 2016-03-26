@@ -8,6 +8,6 @@ import java.util.List;
  */
 public interface FileService {
 
-    List<File> getAllFilesIn();
+    File[] getImageFilesInDirectory(File targetDirectory);
 
 }

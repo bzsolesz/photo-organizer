@@ -1,5 +1,7 @@
 package com.fct.photo_organizer.main;
 
+import com.fct.photo_organizer.service.file.FileService;
+import com.fct.photo_organizer.service.file.impl.FileServiceImpl;
 import com.fct.photo_organizer.ui.PhotoOrganizerFrame;
 
 import javax.swing.*;
@@ -11,10 +13,12 @@ public class PhotoOrganizerMain {
 
     public static void main(String[] args) {
 
+        FileService fileService = new FileServiceImpl();
+
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new PhotoOrganizerFrame().setVisible(true);
+                new PhotoOrganizerFrame(fileService).setVisible(true);
             }
         });
     }

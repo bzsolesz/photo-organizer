@@ -1,41 +1,59 @@
 package com.fct.photo_organizer.ui;
 
 import com.fct.photo_organizer.service.file.FileService;
-import com.fct.photo_organizer.service.file.impl.FileServiceImpl;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.List;
 
 /**
  * Created by zsolt_balogh on 21/03/2016.
  */
 public class PhotoViewerForm {
     private JPanel photoViewerFormPanel;
-    private JTextArea fileTextArea;
-    private JButton browseFilesButton;
+    private JButton selectSourceDirectoryButton;
+    private JList<File> sourceImageList;
+    private JScrollPane sourceImageScrollPanel;
+    private JFileChooser selectSourceDirectoryFileChooser;
 
-    private FileService fileService = new FileServiceImpl();
+    PhotoViewerForm(FileService fileService) {
 
-    public JPanel getPhotoViewerFormPanel() {
-        return photoViewerFormPanel;
+        initSelectSourceDirectoryFileChooser();
+        initSourceImageList();
+
+        selectSourceDirectoryButton.addActionListener((ActionEvent e) ->
+            {
+                if (selectSourceDirectoryFileChooser.showOpenDialog(photoViewerFormPanel) == JFileChooser.APPROVE_OPTION) {
+
+                    File sourceDirectory = selectSourceDirectoryFileChooser.getSelectedFile();
+
+                    File[] imageFiles = fileService.getImageFilesInDirectory(sourceDirectory);
+
+                    sourceImageList.setListData(imageFiles);
+                }
+            });
     }
 
-    PhotoViewerForm() {
-        browseFilesButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                List<File> files = fileService.getAllFilesIn();
+    private void initSelectSourceDirectoryFileChooser() {
 
-                files.add(new File("test1.txt"));
-                files.add(new File("test2.txt"));
+        selectSourceDirectoryFileChooser = new JFileChooser();
+        selectSourceDirectoryFileChooser.setCurrentDirectory(new File("/"));
+        selectSourceDirectoryFileChooser.setDialogTitle("Select image source directory");
+        selectSourceDirectoryFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        selectSourceDirectoryFileChooser.setAcceptAllFileFilterUsed(false);
+    }
 
-                files.forEach(file -> fileTextArea.append(file.getAbsolutePath() + "\n"));
-            }
-        });
+    private void initSourceImageList() {
+
+        sourceImageList.setCellRenderer(new SourceImageListCellRenderer());
+    }
+
+    JPanel getPhotoViewerFormPanel() {
+
+        return photoViewerFormPanel;
     }
 
     {
@@ -54,12 +72,14 @@ public class PhotoViewerForm {
      */
     private void $$$setupUI$$$() {
         photoViewerFormPanel = new JPanel();
-        photoViewerFormPanel.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-        fileTextArea = new JTextArea();
-        photoViewerFormPanel.add(fileTextArea, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
-        browseFilesButton = new JButton();
-        browseFilesButton.setText("Browse...");
-        photoViewerFormPanel.add(browseFilesButton, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        photoViewerFormPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+        sourceImageScrollPanel = new JScrollPane();
+        photoViewerFormPanel.add(sourceImageScrollPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        sourceImageList = new JList();
+        sourceImageScrollPanel.setViewportView(sourceImageList);
+        selectSourceDirectoryButton = new JButton();
+        selectSourceDirectoryButton.setText("Select...");
+        photoViewerFormPanel.add(selectSourceDirectoryButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**
@@ -67,5 +87,18 @@ public class PhotoViewerForm {
      */
     public JComponent $$$getRootComponent$$$() {
         return photoViewerFormPanel;
+    }
+
+    private static class SourceImageListCellRenderer extends DefaultListCellRenderer {
+
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+
+            JLabel cellRendererLabel = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+            cellRendererLabel.setText(((File) value).getName());
+
+            return cellRendererLabel;
+        }
     }
 }
