@@ -18,7 +18,9 @@ public class PhotoOrganizerMain {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new PhotoOrganizerFrame(fileService).setVisible(true);
+                PhotoOrganizerFrame photoOrganizerFrame = new PhotoOrganizerFrame(fileService);
+                photoOrganizerFrame.init();
+                photoOrganizerFrame.setVisible();
             }
         });
     }
