@@ -2,6 +2,7 @@ group 'com.fct'
 version '0.1.1'
 
 apply plugin: 'java'
+apply plugin: 'jacoco'
 
 repositories {
     mavenCentral()
@@ -18,4 +19,9 @@ jar {
     manifest {
         attributes('Main-Class': 'com.fct.photo_organizer.main.PhotoOrganizerMain')
     }
+}
+
+jacocoTestReport {
+    group = 'Reporting'
+    dependsOn test
 }
