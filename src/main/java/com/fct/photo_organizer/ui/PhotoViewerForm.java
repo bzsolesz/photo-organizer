@@ -17,18 +17,18 @@ public class PhotoViewerForm {
     private JButton selectSourceDirectoryButton;
     private JList<File> sourceImageList;
     private JScrollPane sourceImageScrollPanel;
-    private JFileChooser selectSourceDirectoryFileChooser;
+    private SourceDirectoryFileChooser sourceDirectoryFileChooser;
 
     PhotoViewerForm(FileService fileService) {
 
-        initSelectSourceDirectoryFileChooser();
+        initSourceDirectoryFileChooser();
         initSourceImageList();
 
         selectSourceDirectoryButton.addActionListener((ActionEvent e) ->
             {
-                if (selectSourceDirectoryFileChooser.showOpenDialog(photoViewerFormPanel) == JFileChooser.APPROVE_OPTION) {
+                if (sourceDirectoryFileChooser.showOpenDialog(photoViewerFormPanel) == JFileChooser.APPROVE_OPTION) {
 
-                    File sourceDirectory = selectSourceDirectoryFileChooser.getSelectedFile();
+                    File sourceDirectory = sourceDirectoryFileChooser.getSelectedFile();
 
                     File[] imageFiles = fileService.getImageFilesInDirectory(sourceDirectory);
 
@@ -37,13 +37,10 @@ public class PhotoViewerForm {
             });
     }
 
-    private void initSelectSourceDirectoryFileChooser() {
+    private void initSourceDirectoryFileChooser() {
 
-        selectSourceDirectoryFileChooser = new JFileChooser();
-        selectSourceDirectoryFileChooser.setCurrentDirectory(new File("/"));
-        selectSourceDirectoryFileChooser.setDialogTitle("Select image source directory");
-        selectSourceDirectoryFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        selectSourceDirectoryFileChooser.setAcceptAllFileFilterUsed(false);
+        sourceDirectoryFileChooser = new SourceDirectoryFileChooser();
+        sourceDirectoryFileChooser.init();
     }
 
     private void initSourceImageList() {
