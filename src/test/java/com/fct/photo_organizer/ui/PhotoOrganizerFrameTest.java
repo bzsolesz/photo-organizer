@@ -3,7 +3,9 @@ package com.fct.photo_organizer.ui;
 import com.fct.photo_organizer.service.file.FileService;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,11 +24,11 @@ public class PhotoOrganizerFrameTest {
     @Mock
     private FileService fileServiceMock;
     @Mock
-    private JFrame jFrameMock;
+    private JFrame internalFrameMock;
     @Mock
     private PhotoViewerForm photoViewerFormMock;
     @Mock
-    private JPanel jPanelMock;
+    private JPanel photoViewerPanelMock;
     @Mock
     private Dimension dimensionMock;
 
@@ -37,11 +39,11 @@ public class PhotoOrganizerFrameTest {
 
         testedFrame = spy(new PhotoOrganizerFrame(fileServiceMock));
 
-        doReturn(jFrameMock).when(testedFrame).createJFrame();
+        doReturn(internalFrameMock).when(testedFrame).createJFrame();
         doReturn(dimensionMock).when(testedFrame).createDimension(PhotoOrganizerFrame.WIDTH, PhotoOrganizerFrame.HEIGHT);
         doReturn(photoViewerFormMock).when(testedFrame).createPhotoViewerForm(fileServiceMock);
 
-        when(photoViewerFormMock.getPhotoViewerFormPanel()).thenReturn(jPanelMock);
+        when(photoViewerFormMock.getPhotoViewerFormPanel()).thenReturn(photoViewerPanelMock);
 
         testedFrame.init();
     }
@@ -53,22 +55,26 @@ public class PhotoOrganizerFrameTest {
 
     @Test
     public void shouldTheTitleOfTheFrameSet() {
-        verify(jFrameMock).setTitle(PhotoOrganizerFrame.TITLE);
+        verify(internalFrameMock).setTitle(PhotoOrganizerFrame.TITLE);
     }
 
     @Test
     public void shouldTheCloseOperationSetToCloseOnExit() {
-        verify(jFrameMock).setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        verify(internalFrameMock).setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
 
     @Test
     public void shouldTheDimensionOfTheFrameSet() {
-        verify(jFrameMock).setMinimumSize(dimensionMock);
+        verify(internalFrameMock).setMinimumSize(dimensionMock);
     }
 
     @Test
     public void shouldSetContentPanelToPhotoViewerFormPanel() {
-        verify(jFrameMock).setContentPane(jPanelMock);
+
+        InOrder setContentPaneOrder = Mockito.inOrder(photoViewerFormMock, internalFrameMock);
+
+        setContentPaneOrder.verify(photoViewerFormMock).init();
+        setContentPaneOrder.verify(internalFrameMock).setContentPane(photoViewerPanelMock);
     }
 
     @Test
@@ -76,6 +82,6 @@ public class PhotoOrganizerFrameTest {
 
         testedFrame.setVisible();
 
-        verify(jFrameMock).setVisible(true);
+        verify(internalFrameMock).setVisible(true);
     }
 }

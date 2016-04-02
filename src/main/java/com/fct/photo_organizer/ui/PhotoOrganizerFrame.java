@@ -5,16 +5,13 @@ import com.fct.photo_organizer.service.file.FileService;
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * Created by zsolt_balogh on 21/03/2016.
- */
 public class PhotoOrganizerFrame {
 
     final static String TITLE = "Photo Organizer";
     final static int HEIGHT = 400;
     final static int WIDTH = 500;
 
-    private JFrame jFrame;
+    private JFrame internalFrame;
     private FileService fileService;
 
     public PhotoOrganizerFrame(FileService fileService) {
@@ -22,15 +19,19 @@ public class PhotoOrganizerFrame {
     }
 
     public void init() {
-        jFrame = createJFrame();
-        jFrame.setTitle(TITLE);
-        jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        jFrame.setMinimumSize(createDimension(WIDTH, HEIGHT));
-        jFrame.setContentPane(createPhotoViewerForm(fileService).getPhotoViewerFormPanel());
+        internalFrame = createJFrame();
+        internalFrame.setTitle(TITLE);
+        internalFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        internalFrame.setMinimumSize(createDimension(WIDTH, HEIGHT));
+
+        PhotoViewerForm photoViewerForm = createPhotoViewerForm(fileService);
+        photoViewerForm.init();
+
+        internalFrame.setContentPane(photoViewerForm.getPhotoViewerFormPanel());
     }
 
     public void setVisible() {
-        jFrame.setVisible(true);
+        internalFrame.setVisible(true);
     }
 
     JFrame createJFrame() {

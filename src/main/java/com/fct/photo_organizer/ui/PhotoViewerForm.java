@@ -7,45 +7,56 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 
-/**
- * Created by zsolt_balogh on 21/03/2016.
- */
 public class PhotoViewerForm {
-    private JPanel photoViewerFormPanel;
-    private JButton selectSourceDirectoryButton;
-    private JList<File> sourceImageList;
+    JPanel photoViewerFormPanel;
+    JButton selectSourceDirectoryButton;
+    JList<File> sourceImageList;
     private JScrollPane sourceImageScrollPanel;
-    private SourceDirectoryFileChooser sourceDirectoryFileChooser;
+    SourceDirectoryFileChooser sourceDirectoryFileChooser;
+
+    private FileService fileService;
 
     PhotoViewerForm(FileService fileService) {
 
+        this.fileService = fileService;
+    }
+
+    void init() {
+
         initSourceDirectoryFileChooser();
         initSourceImageList();
-
-        selectSourceDirectoryButton.addActionListener((ActionEvent e) ->
-            {
-                if (sourceDirectoryFileChooser.showOpenDialog(photoViewerFormPanel) == JFileChooser.APPROVE_OPTION) {
-
-                    File sourceDirectory = sourceDirectoryFileChooser.getSelectedFile();
-
-                    File[] imageFiles = fileService.getImageFilesInDirectory(sourceDirectory);
-
-                    sourceImageList.setListData(imageFiles);
-                }
-            });
+        initSelectSourceDirectoryButton();
     }
 
     private void initSourceDirectoryFileChooser() {
 
-        sourceDirectoryFileChooser = new SourceDirectoryFileChooser();
+        sourceDirectoryFileChooser = createSourceDirectoryFileChooser();
         sourceDirectoryFileChooser.init();
     }
 
     private void initSourceImageList() {
 
-        sourceImageList.setCellRenderer(new SourceImageListCellRenderer());
+        sourceImageList.setCellRenderer(createSourceImageListCellRenderer());
+    }
+
+    private void initSelectSourceDirectoryButton() {
+
+        selectSourceDirectoryButton.addActionListener(createSelectSourceDirectoryButtonActionListener(fileService));
+    }
+
+    SourceDirectoryFileChooser createSourceDirectoryFileChooser() {
+        return new SourceDirectoryFileChooser();
+    }
+
+    SourceImageListCellRenderer createSourceImageListCellRenderer() {
+        return new SourceImageListCellRenderer();
+    }
+
+    SelectSourceDirectoryButtonActionListener createSelectSourceDirectoryButtonActionListener(FileService fileService) {
+        return new SelectSourceDirectoryButtonActionListener(fileService);
     }
 
     JPanel getPhotoViewerFormPanel() {
@@ -86,16 +97,42 @@ public class PhotoViewerForm {
         return photoViewerFormPanel;
     }
 
-    private static class SourceImageListCellRenderer extends DefaultListCellRenderer {
+    class SelectSourceDirectoryButtonActionListener implements ActionListener {
+
+        private FileService fileService;
+
+        public SelectSourceDirectoryButtonActionListener(FileService fileService) {
+            this.fileService = fileService;
+        }
 
         @Override
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        public void actionPerformed(ActionEvent event) {
 
-            JLabel cellRendererLabel = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            if (sourceDirectoryFileChooser.showOpenDialog(photoViewerFormPanel) == JFileChooser.APPROVE_OPTION) {
 
-            cellRendererLabel.setText(((File) value).getName());
+                File sourceDirectory = sourceDirectoryFileChooser.getSelectedFile();
+
+                File[] images = fileService.getImageFilesInDirectory(sourceDirectory);
+
+                sourceImageList.setListData(images);
+            }
+        }
+    }
+
+    static class SourceImageListCellRenderer extends DefaultListCellRenderer {
+
+        @Override
+        public Component getListCellRendererComponent(JList list, Object file, int fileIndex, boolean isSelected, boolean cellHasFocus) {
+
+            JLabel cellRendererLabel = getSuperListCellRendererComponent(list, file, fileIndex, isSelected, cellHasFocus);
+
+            cellRendererLabel.setText(((File) file).getName());
 
             return cellRendererLabel;
+        }
+
+        JLabel getSuperListCellRendererComponent(JList list, Object file, int fileIndex, boolean isSelected, boolean cellHasFocus) {
+            return (JLabel) super.getListCellRendererComponent(list, file, fileIndex, isSelected, cellHasFocus);
         }
     }
 }
