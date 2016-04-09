@@ -8,8 +8,8 @@ import java.awt.*;
 public class PhotoOrganizerFrame {
 
     final static String TITLE = "Photo Organizer";
-    final static int HEIGHT = 400;
-    final static int WIDTH = 500;
+    final static int WIDTH = 550;
+    final static int HEIGHT = 450;
 
     private JFrame internalFrame;
     private FileService fileService;

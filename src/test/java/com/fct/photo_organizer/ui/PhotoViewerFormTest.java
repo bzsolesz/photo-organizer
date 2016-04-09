@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.io.File;
 
@@ -19,6 +20,7 @@ public class PhotoViewerFormTest {
     private PhotoViewerForm testedForm;
     private PhotoViewerForm.SelectSourceDirectoryButtonActionListener testedActionListener;
     private SourceImageListCellRenderer testedCellRenderer;
+    private PhotoViewerForm.SourceImageListSelectionListener testedListSelectionListener;
 
     @Mock
     private FileService fileServiceMock;
@@ -32,6 +34,8 @@ public class PhotoViewerFormTest {
     private JList<File> sourceImageListMock;
     @Mock
     private JButton selectSourceDirectoryButtonMock;
+    @Mock
+    private JLabel showImageLabelMock;
 
     private File[] images;
 
@@ -43,6 +47,7 @@ public class PhotoViewerFormTest {
         testedForm = spy(new PhotoViewerForm(fileServiceMock));
         testedActionListener = testedForm.new SelectSourceDirectoryButtonActionListener(fileServiceMock);
         testedCellRenderer = spy(new SourceImageListCellRenderer());
+        testedListSelectionListener = spy(testedForm.new SourceImageListSelectionListener());
 
         initImages();
 
@@ -64,11 +69,27 @@ public class PhotoViewerFormTest {
     }
 
     @Test
-    public void shouldInitItsSourceImageListWithCellAppropriateRendered() {
+    public void shouldInitItsSourceImageListWithAppropriateCellRendered() {
 
         testedForm.init();
 
         verify(sourceImageListMock).setCellRenderer(testedCellRenderer);
+    }
+
+    @Test
+    public void shouldInitItsSourceImageListToSingleSelection() {
+
+        testedForm.init();
+
+        verify(sourceImageListMock).setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    }
+
+    @Test
+    public void shouldInitItsSourceImageListWithAppropriateSelectionListener() {
+
+        testedForm.init();
+
+        verify(sourceImageListMock).addListSelectionListener(testedListSelectionListener);
     }
 
     @Test
@@ -128,6 +149,26 @@ public class PhotoViewerFormTest {
         assertEquals(cellRendererLabelMock, resultCellRendererLabel);
     }
 
+    @Test
+    public void shouldDisplayTheSelectedImage() throws Exception {
+
+        ListSelectionEvent eventMock = mock(ListSelectionEvent.class);
+        when(eventMock.getSource()).thenReturn(sourceImageListMock);
+
+        File selectedImageFileMock = mock(File.class);
+        when(sourceImageListMock.getSelectedValue()).thenReturn(selectedImageFileMock);
+
+        Image imageMock = mock(Image.class);
+        doReturn(imageMock).when(testedListSelectionListener).readImage(selectedImageFileMock);
+
+        ImageIcon imageIconMock = mock(ImageIcon.class);
+        doReturn(imageIconMock).when(testedListSelectionListener).createImageIcon(imageMock);
+
+        testedListSelectionListener.valueChanged(eventMock);
+
+        verify(showImageLabelMock).setIcon(imageIconMock);
+    }
+
     private void initImages() {
 
         images = new File[2];
@@ -141,6 +182,7 @@ public class PhotoViewerFormTest {
         doReturn(sourceDirectoryFileChooserMock).when(testedForm).createSourceDirectoryFileChooser();
         doReturn(testedCellRenderer).when(testedForm).createSourceImageListCellRenderer();
         doReturn(testedActionListener).when(testedForm).createSelectSourceDirectoryButtonActionListener(fileServiceMock);
+        doReturn(testedListSelectionListener).when(testedForm).createSourceImageListSelectionListener();
     }
 
     private void initTestedFormToHaveUIElementMocks() {
@@ -148,5 +190,6 @@ public class PhotoViewerFormTest {
         testedForm.photoViewerFormPanel = photoViewerPanelMock;
         testedForm.sourceImageList = sourceImageListMock;
         testedForm.selectSourceDirectoryButton = selectSourceDirectoryButtonMock;
+        testedForm.showImageLabel = showImageLabelMock;
     }
 }
