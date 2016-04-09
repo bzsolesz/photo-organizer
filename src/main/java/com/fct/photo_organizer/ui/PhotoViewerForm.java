@@ -4,6 +4,7 @@ import com.fct.photo_organizer.service.file.FileService;
 import com.fct.photo_organizer.service.image.ImageService;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -25,6 +26,11 @@ public class PhotoViewerForm {
     JButton nextImageButton;
     JButton previousImageButton;
     private JPanel imageNavigationPanel;
+    private JPanel assignmentPanel;
+    private JPanel addChildPanel;
+    private JLabel addChildLabel;
+    private JTextField addChildTextField;
+    private JButton addChildButton;
     SourceDirectoryFileChooser sourceDirectoryFileChooser;
 
     private FileService fileService;
@@ -119,7 +125,7 @@ public class PhotoViewerForm {
     private void $$$setupUI$$$() {
         createUIComponents();
         photoViewerFormPanel = new JPanel();
-        photoViewerFormPanel.setLayout(new GridLayoutManager(2, 3, new Insets(10, 10, 10, 10), -1, -1));
+        photoViewerFormPanel.setLayout(new GridLayoutManager(2, 4, new Insets(10, 10, 10, 10), -1, -1));
         sourceImageScrollPanel = new JScrollPane();
         photoViewerFormPanel.add(sourceImageScrollPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(150, 600), new Dimension(150, 600), new Dimension(150, 600), 0, false));
         sourceImageList = new JList();
@@ -127,7 +133,7 @@ public class PhotoViewerForm {
         sourceImageScrollPanel.setViewportView(sourceImageList);
         showImagePanel = new JPanel();
         showImagePanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(showImagePanel, new GridConstraints(0, 2, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(800, 600), new Dimension(800, 600), new Dimension(800, 600), 0, false));
+        photoViewerFormPanel.add(showImagePanel, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(800, 600), new Dimension(800, 600), new Dimension(800, 600), 0, false));
         showImageLabel = new JLabel();
         showImageLabel.setText("");
         showImagePanel.add(showImageLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(146, 0), null, 0, false));
@@ -145,6 +151,21 @@ public class PhotoViewerForm {
         selectSourceDirectoryButton.setHorizontalTextPosition(0);
         selectSourceDirectoryButton.setText("Select...");
         photoViewerFormPanel.add(selectSourceDirectoryButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        assignmentPanel = new JPanel();
+        assignmentPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        photoViewerFormPanel.add(assignmentPanel, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(250, 600), new Dimension(250, 600), new Dimension(250, 600), 0, false));
+        addChildPanel = new JPanel();
+        addChildPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+        assignmentPanel.add(addChildPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        addChildLabel = new JLabel();
+        addChildLabel.setText("Add new child");
+        addChildPanel.add(addChildLabel, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        addChildTextField = new JTextField();
+        addChildPanel.add(addChildTextField, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(200, -1), new Dimension(200, -1), new Dimension(200, -1), 0, false));
+        addChildButton = new JButton();
+        addChildButton.setHorizontalTextPosition(11);
+        addChildButton.setText("+");
+        addChildPanel.add(addChildButton, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(30, 26), new Dimension(30, 26), new Dimension(30, 26), 0, false));
     }
 
     /**

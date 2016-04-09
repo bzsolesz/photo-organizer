@@ -9,7 +9,7 @@ import java.awt.*;
 public class PhotoOrganizerFrame {
 
     final static String TITLE = "Photo Organizer";
-    final static int WIDTH = 1000;
+    final static int WIDTH = 1300;
     final static int HEIGHT = 700;
 
     private JFrame internalFrame;
