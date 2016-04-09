@@ -148,6 +148,12 @@ public class PhotoViewerForm {
                 File[] images = fileService.getImageFilesInDirectory(sourceDirectory);
 
                 sourceImageList.setListData(images);
+
+                if (images.length > 0) {
+                    sourceImageList.setSelectedIndex(0);
+                } else {
+                    sourceImageList.clearSelection();
+                }
             }
         }
     }
@@ -178,15 +184,24 @@ public class PhotoViewerForm {
 
             File selectedImageFile = imageList.getSelectedValue();
 
-            try {
-                ImageIcon imageIcon = imageService.loadImageIcon(selectedImageFile);
+            ImageIcon imageIcon = loadImageIcon(selectedImageFile);
 
-                showImageLabel.setIcon(imageIcon);
+            showImageLabel.setIcon(imageIcon);
+        }
 
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(photoViewerFormPanel, "An error happened during loading the image!",
-                        "Error", JOptionPane.ERROR_MESSAGE);
+        private ImageIcon loadImageIcon(File selectedImageFile) {
+
+            ImageIcon imageIcon = null;
+
+            if (selectedImageFile != null) {
+                try {
+                    imageIcon = imageService.loadImageIcon(selectedImageFile);
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(photoViewerFormPanel, "An error happened during loading the image!",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
+            return imageIcon;
         }
     }
 }

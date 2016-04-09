@@ -11,6 +11,8 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -58,6 +60,7 @@ public class PhotoViewerFormTest {
         initTestedFormToHaveUIElementMocks();
 
         when(sourceDirectoryFileChooserMock.getSelectedFile()).thenReturn(sourceDirectoryMock);
+        when(sourceDirectoryFileChooserMock.showOpenDialog(photoViewerPanelMock)).thenReturn(JFileChooser.APPROVE_OPTION);
 
         when(fileServiceMock.getImageFilesInDirectory(sourceDirectoryMock)).thenReturn(images);
     }
@@ -106,9 +109,7 @@ public class PhotoViewerFormTest {
     @Test
     public void shouldPopulateTheImageListWithTheImagesInTheChosenSourceDirectory() {
 
-        testedForm.sourceDirectoryFileChooser = sourceDirectoryFileChooserMock;
-
-        when(sourceDirectoryFileChooserMock.showOpenDialog(photoViewerPanelMock)).thenReturn(JFileChooser.APPROVE_OPTION);
+        testedForm.init();
 
         testedActionListener.actionPerformed(null);
 
@@ -116,15 +117,38 @@ public class PhotoViewerFormTest {
     }
 
     @Test
+    public void shouldLoadTheFirstImageOfTheSelectedSourceDirectory() {
+
+        testedForm.init();
+
+        testedActionListener.actionPerformed(null);
+
+        verify(sourceImageListMock).setSelectedIndex(0);
+    }
+
+    @Test
     public void shouldNotChangeTheImageListOnCancelInFileChooser() {
 
-        testedForm.sourceDirectoryFileChooser = sourceDirectoryFileChooserMock;
+        testedForm.init();
 
         when(sourceDirectoryFileChooserMock.showOpenDialog(photoViewerPanelMock)).thenReturn(JFileChooser.CANCEL_OPTION);
 
         testedActionListener.actionPerformed(null);
 
         verify(sourceImageListMock, times(0)).setListData(images);
+    }
+
+    @Test
+    public void shouldClearImageListForSelectedSourceDirectoryWithoutImage() {
+
+        testedForm.init();
+
+        when(fileServiceMock.getImageFilesInDirectory(sourceDirectoryMock)).thenReturn(new File[0]);
+
+        testedActionListener.actionPerformed(null);
+
+        verify(sourceImageListMock, times(0)).setSelectedIndex(anyInt());
+        verify(sourceImageListMock).clearSelection();
     }
 
     @Test
@@ -167,6 +191,20 @@ public class PhotoViewerFormTest {
         testedListSelectionListener.valueChanged(eventMock);
 
         verify(showImageLabelMock).setIcon(imageIconMock);
+    }
+
+    @Test
+    public void shouldClearRemoveDisplayedImageIfSelectionWasRemoved() throws IOException {
+
+        ListSelectionEvent eventMock = mock(ListSelectionEvent.class);
+        when(eventMock.getSource()).thenReturn(sourceImageListMock);
+
+        when(sourceImageListMock.getSelectedValue()).thenReturn(null);
+
+        testedListSelectionListener.valueChanged(eventMock);
+
+        verify(imageServiceMock, times(0)).loadImageIcon(null);
+        verify(showImageLabelMock).setIcon(null);
     }
 
     private void initImages() {
