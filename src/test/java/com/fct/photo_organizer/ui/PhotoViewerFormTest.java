@@ -9,21 +9,24 @@ import org.mockito.Mock;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.plaf.basic.BasicArrowButton;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class PhotoViewerFormTest {
 
     private PhotoViewerForm testedForm;
-    private PhotoViewerForm.SelectSourceDirectoryButtonActionListener testedActionListener;
+    private PhotoViewerForm.SelectSourceDirectoryButtonActionListener testedSourceDirectoryActionListener;
     private SourceImageListCellRenderer testedCellRenderer;
     private PhotoViewerForm.SourceImageListSelectionListener testedListSelectionListener;
+    private PhotoViewerForm.NextImageButtonActionListener testedNextImageButtonActionListener;
+    private PhotoViewerForm.PreviousImageButtonActionListener testedPreviousImageButtonActionListener;
 
     @Mock
     private FileService fileServiceMock;
@@ -41,6 +44,14 @@ public class PhotoViewerFormTest {
     private JButton selectSourceDirectoryButtonMock;
     @Mock
     private JLabel showImageLabelMock;
+    @Mock
+    private JButton nextImageButtonMock;
+    @Mock
+    private JButton previousImageButtonMock;
+    @Mock
+    private ListSelectionEvent listSelectionEventMock;
+    @Mock
+    private ListModel<File> sourceImageListModelMock;
 
     private File[] images;
 
@@ -50,9 +61,11 @@ public class PhotoViewerFormTest {
         initMocks(this);
 
         testedForm = spy(new PhotoViewerForm(fileServiceMock, imageServiceMock));
-        testedActionListener = testedForm.new SelectSourceDirectoryButtonActionListener();
+        testedSourceDirectoryActionListener = testedForm.new SelectSourceDirectoryButtonActionListener();
         testedCellRenderer = spy(new SourceImageListCellRenderer());
         testedListSelectionListener = testedForm.new SourceImageListSelectionListener();
+        testedPreviousImageButtonActionListener = testedForm.new PreviousImageButtonActionListener();
+        testedNextImageButtonActionListener = testedForm.new NextImageButtonActionListener();
 
         initImages();
 
@@ -63,6 +76,10 @@ public class PhotoViewerFormTest {
         when(sourceDirectoryFileChooserMock.showOpenDialog(photoViewerPanelMock)).thenReturn(JFileChooser.APPROVE_OPTION);
 
         when(fileServiceMock.getImageFilesInDirectory(sourceDirectoryMock)).thenReturn(images);
+
+        when(listSelectionEventMock.getSource()).thenReturn(sourceImageListMock);
+
+        when(sourceImageListMock.getModel()).thenReturn(sourceImageListModelMock);
     }
 
     @Test
@@ -103,7 +120,28 @@ public class PhotoViewerFormTest {
 
         testedForm.init();
 
-        verify(selectSourceDirectoryButtonMock).addActionListener(testedActionListener);
+        verify(selectSourceDirectoryButtonMock).addActionListener(testedSourceDirectoryActionListener);
+    }
+
+    @Test
+    public void shouldInitItsImageNavigationButtonsWithListeners() {
+
+        testedForm.init();
+
+        verify(previousImageButtonMock).addActionListener(testedPreviousImageButtonActionListener);
+        verify(nextImageButtonMock).addActionListener(testedNextImageButtonActionListener);
+    }
+
+    @Test
+    public void shouldCreateItsNextAndPreviousImageButtons() {
+
+        testedForm.createUIComponents();
+
+        assertTrue(testedForm.previousImageButton instanceof BasicArrowButton);
+        assertEquals(BasicArrowButton.NORTH, ((BasicArrowButton)testedForm.previousImageButton).getDirection());
+
+        assertTrue(testedForm.nextImageButton instanceof BasicArrowButton);
+        assertEquals(BasicArrowButton.SOUTH, ((BasicArrowButton)testedForm.nextImageButton).getDirection());
     }
 
     @Test
@@ -111,7 +149,7 @@ public class PhotoViewerFormTest {
 
         testedForm.init();
 
-        testedActionListener.actionPerformed(null);
+        testedSourceDirectoryActionListener.actionPerformed(null);
 
         verify(sourceImageListMock).setListData(images);
     }
@@ -121,7 +159,7 @@ public class PhotoViewerFormTest {
 
         testedForm.init();
 
-        testedActionListener.actionPerformed(null);
+        testedSourceDirectoryActionListener.actionPerformed(null);
 
         verify(sourceImageListMock).setSelectedIndex(0);
     }
@@ -133,7 +171,7 @@ public class PhotoViewerFormTest {
 
         when(sourceDirectoryFileChooserMock.showOpenDialog(photoViewerPanelMock)).thenReturn(JFileChooser.CANCEL_OPTION);
 
-        testedActionListener.actionPerformed(null);
+        testedSourceDirectoryActionListener.actionPerformed(null);
 
         verify(sourceImageListMock, times(0)).setListData(images);
     }
@@ -145,7 +183,7 @@ public class PhotoViewerFormTest {
 
         when(fileServiceMock.getImageFilesInDirectory(sourceDirectoryMock)).thenReturn(new File[0]);
 
-        testedActionListener.actionPerformed(null);
+        testedSourceDirectoryActionListener.actionPerformed(null);
 
         verify(sourceImageListMock, times(0)).setSelectedIndex(anyInt());
         verify(sourceImageListMock).clearSelection();
@@ -179,16 +217,13 @@ public class PhotoViewerFormTest {
     @Test
     public void shouldDisplayTheSelectedImage() throws Exception {
 
-        ListSelectionEvent eventMock = mock(ListSelectionEvent.class);
-        when(eventMock.getSource()).thenReturn(sourceImageListMock);
-
         File selectedImageFileMock = mock(File.class);
         when(sourceImageListMock.getSelectedValue()).thenReturn(selectedImageFileMock);
 
         ImageIcon imageIconMock = mock(ImageIcon.class);
         when(imageServiceMock.loadImageIcon(selectedImageFileMock)).thenReturn(imageIconMock);
 
-        testedListSelectionListener.valueChanged(eventMock);
+        testedListSelectionListener.valueChanged(listSelectionEventMock);
 
         verify(showImageLabelMock).setIcon(imageIconMock);
     }
@@ -196,15 +231,114 @@ public class PhotoViewerFormTest {
     @Test
     public void shouldClearRemoveDisplayedImageIfSelectionWasRemoved() throws IOException {
 
-        ListSelectionEvent eventMock = mock(ListSelectionEvent.class);
-        when(eventMock.getSource()).thenReturn(sourceImageListMock);
-
         when(sourceImageListMock.getSelectedValue()).thenReturn(null);
 
-        testedListSelectionListener.valueChanged(eventMock);
+        testedListSelectionListener.valueChanged(listSelectionEventMock);
 
         verify(imageServiceMock, times(0)).loadImageIcon(null);
         verify(showImageLabelMock).setIcon(null);
+    }
+
+    @Test
+    public void shouldDisablePreviousImageButtonIfFirstImageIsSelected() {
+
+        when(sourceImageListModelMock.getSize()).thenReturn(3);
+
+        when(sourceImageListMock.getSelectedIndex()).thenReturn(0);
+
+        testedListSelectionListener.valueChanged(listSelectionEventMock);
+
+        verify(previousImageButtonMock).setEnabled(false);
+    }
+
+    @Test
+    public void shouldEnablePreviousImageButtonIfNotFirstImageIsSelected() {
+
+        when(sourceImageListModelMock.getSize()).thenReturn(3);
+
+        when(sourceImageListMock.getSelectedIndex()).thenReturn(1);
+
+        testedListSelectionListener.valueChanged(listSelectionEventMock);
+
+        verify(previousImageButtonMock).setEnabled(true);
+    }
+
+    @Test
+    public void shouldDisableNextImageButtonIfLastImageIsSelected() {
+
+        int listSize = 3;
+
+        when(sourceImageListModelMock.getSize()).thenReturn(listSize);
+
+        when(sourceImageListMock.getSelectedIndex()).thenReturn(listSize - 1);
+
+        testedListSelectionListener.valueChanged(listSelectionEventMock);
+
+        verify(nextImageButtonMock).setEnabled(false);
+    }
+
+    @Test
+    public void shouldEnableNextImageButtonIfNotLastImageIsSelected() {
+
+        int listSize = 3;
+
+        when(sourceImageListModelMock.getSize()).thenReturn(listSize);
+
+        when(sourceImageListMock.getSelectedIndex()).thenReturn(listSize - 2);
+
+        testedListSelectionListener.valueChanged(listSelectionEventMock);
+
+        verify(nextImageButtonMock).setEnabled(true);
+    }
+
+    @Test
+    public void shouldDisablePreviousAndNextImageButtonIfListIsEmpty() {
+
+        when(sourceImageListModelMock.getSize()).thenReturn(0);
+
+        when(sourceImageListMock.getSelectedIndex()).thenReturn(-1);
+
+        testedListSelectionListener.valueChanged(listSelectionEventMock);
+
+        verify(previousImageButtonMock).setEnabled(false);
+        verify(nextImageButtonMock).setEnabled(false);
+    }
+
+    @Test
+    public void shouldDisablePreviousAndNextImageButtonIfListHasOnlyOneImage() {
+
+        when(sourceImageListModelMock.getSize()).thenReturn(1);
+
+        when(sourceImageListMock.getSelectedIndex()).thenReturn(0);
+
+        testedListSelectionListener.valueChanged(listSelectionEventMock);
+
+        verify(previousImageButtonMock).setEnabled(false);
+        verify(nextImageButtonMock).setEnabled(false);
+    }
+
+    @Test
+    public void shouldDisplayThePreviousImage() {
+
+        int currentSelectedIndex = 5;
+
+        when(sourceImageListMock.getSelectedIndex()).thenReturn(currentSelectedIndex);
+
+        testedPreviousImageButtonActionListener.actionPerformed(null);
+
+        verify(sourceImageListMock).setSelectedIndex(currentSelectedIndex - 1);
+    }
+
+    @Test
+    public void shouldDisplayTheNextImage() {
+
+        int currentSelectedIndex = 5;
+
+        when(sourceImageListMock.getSelectedIndex()).thenReturn(currentSelectedIndex);
+
+        testedNextImageButtonActionListener.actionPerformed(null);
+
+        verify(sourceImageListMock).setSelectedIndex(currentSelectedIndex + 1);
     }
 
     private void initImages() {
@@ -219,8 +353,10 @@ public class PhotoViewerFormTest {
 
         doReturn(sourceDirectoryFileChooserMock).when(testedForm).createSourceDirectoryFileChooser();
         doReturn(testedCellRenderer).when(testedForm).createSourceImageListCellRenderer();
-        doReturn(testedActionListener).when(testedForm).createSelectSourceDirectoryButtonActionListener();
+        doReturn(testedSourceDirectoryActionListener).when(testedForm).createSelectSourceDirectoryButtonActionListener();
         doReturn(testedListSelectionListener).when(testedForm).createSourceImageListSelectionListener();
+        doReturn(testedNextImageButtonActionListener).when(testedForm).createNextImageButtonActionListener();
+        doReturn(testedPreviousImageButtonActionListener).when(testedForm).createPreviousImageButtonActionListener();
     }
 
     private void initTestedFormToHaveUIElementMocks() {
@@ -229,5 +365,7 @@ public class PhotoViewerFormTest {
         testedForm.sourceImageList = sourceImageListMock;
         testedForm.selectSourceDirectoryButton = selectSourceDirectoryButtonMock;
         testedForm.showImageLabel = showImageLabelMock;
+        testedForm.nextImageButton = nextImageButtonMock;
+        testedForm.previousImageButton = previousImageButtonMock;
     }
 }

@@ -8,6 +8,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.plaf.basic.BasicArrowButton;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,10 +22,9 @@ public class PhotoViewerForm {
     private JScrollPane sourceImageScrollPanel;
     JLabel showImageLabel;
     private JPanel showImagePanel;
-    private JButton nextImageButton;
-    private JButton previousImageButton;
-    private JPanel navigationButtonPanel;
-    private JPanel selectSourcePanel;
+    JButton nextImageButton;
+    JButton previousImageButton;
+    private JPanel imageNavigationPanel;
     SourceDirectoryFileChooser sourceDirectoryFileChooser;
 
     private FileService fileService;
@@ -41,6 +41,7 @@ public class PhotoViewerForm {
         initSourceDirectoryFileChooser();
         initSourceImageList();
         initSelectSourceDirectoryButton();
+        initImageNavigationButtons();
     }
 
     private void initSourceDirectoryFileChooser() {
@@ -61,6 +62,12 @@ public class PhotoViewerForm {
         selectSourceDirectoryButton.addActionListener(createSelectSourceDirectoryButtonActionListener());
     }
 
+    private void initImageNavigationButtons() {
+
+        previousImageButton.addActionListener(createPreviousImageButtonActionListener());
+        nextImageButton.addActionListener(createNextImageButtonActionListener());
+    }
+
     SourceDirectoryFileChooser createSourceDirectoryFileChooser() {
         return new SourceDirectoryFileChooser();
     }
@@ -77,9 +84,22 @@ public class PhotoViewerForm {
         return new SelectSourceDirectoryButtonActionListener();
     }
 
+    NextImageButtonActionListener createNextImageButtonActionListener() {
+        return new NextImageButtonActionListener();
+    }
+
+    PreviousImageButtonActionListener createPreviousImageButtonActionListener() {
+        return new PreviousImageButtonActionListener();
+    }
+
     JPanel getPhotoViewerFormPanel() {
 
         return photoViewerFormPanel;
+    }
+
+    void createUIComponents() {
+        nextImageButton = new BasicArrowButton(BasicArrowButton.SOUTH);
+        previousImageButton = new BasicArrowButton(BasicArrowButton.NORTH);
     }
 
     {
@@ -97,36 +117,34 @@ public class PhotoViewerForm {
      * @noinspection ALL
      */
     private void $$$setupUI$$$() {
+        createUIComponents();
         photoViewerFormPanel = new JPanel();
-        photoViewerFormPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+        photoViewerFormPanel.setLayout(new GridLayoutManager(2, 3, new Insets(0, 0, 0, 0), -1, -1));
         sourceImageScrollPanel = new JScrollPane();
         photoViewerFormPanel.add(sourceImageScrollPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(100, 350), new Dimension(100, 350), new Dimension(100, 350), 0, false));
         sourceImageList = new JList();
         sourceImageList.setSelectionMode(2);
         sourceImageScrollPanel.setViewportView(sourceImageList);
-        navigationButtonPanel = new JPanel();
-        navigationButtonPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(navigationButtonPanel, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(400, 50), new Dimension(400, 50), new Dimension(400, 50), 0, false));
-        nextImageButton = new JButton();
-        nextImageButton.setText(" > ");
-        navigationButtonPanel.add(nextImageButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        previousImageButton = new JButton();
-        previousImageButton.setText(" < ");
-        navigationButtonPanel.add(previousImageButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         showImagePanel = new JPanel();
         showImagePanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(showImagePanel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(400, 350), new Dimension(400, 350), new Dimension(400, 400), 0, false));
+        photoViewerFormPanel.add(showImagePanel, new GridConstraints(0, 2, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(400, 350), new Dimension(400, 350), new Dimension(400, 400), 0, false));
         showImageLabel = new JLabel();
         showImageLabel.setText("");
         showImagePanel.add(showImageLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(146, 0), null, 0, false));
-        selectSourcePanel = new JPanel();
-        selectSourcePanel.setLayout(new BorderLayout(0, 0));
-        photoViewerFormPanel.add(selectSourcePanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(100, 50), new Dimension(100, 50), new Dimension(100, 50), 0, false));
+        imageNavigationPanel = new JPanel();
+        imageNavigationPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+        photoViewerFormPanel.add(imageNavigationPanel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        previousImageButton.setEnabled(false);
+        previousImageButton.setText("Button");
+        imageNavigationPanel.add(previousImageButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        nextImageButton.setEnabled(false);
+        nextImageButton.setText("Button");
+        imageNavigationPanel.add(nextImageButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         selectSourceDirectoryButton = new JButton();
         selectSourceDirectoryButton.setHorizontalAlignment(2);
         selectSourceDirectoryButton.setHorizontalTextPosition(0);
         selectSourceDirectoryButton.setText("Select...");
-        selectSourcePanel.add(selectSourceDirectoryButton, BorderLayout.WEST);
+        photoViewerFormPanel.add(selectSourceDirectoryButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
     }
 
     /**
@@ -182,14 +200,35 @@ public class PhotoViewerForm {
 
             JList<File> imageList = (JList<File>) event.getSource();
 
-            File selectedImageFile = imageList.getSelectedValue();
+            ImageIcon imageIcon = loadImageIcon(imageList);
 
-            ImageIcon imageIcon = loadImageIcon(selectedImageFile);
+            enableDisablePreviousImageButton(imageList);
+            enableDisableNextImageButton(imageList);
 
             showImageLabel.setIcon(imageIcon);
         }
 
-        private ImageIcon loadImageIcon(File selectedImageFile) {
+        private void enableDisablePreviousImageButton(JList<File> imageList) {
+
+            int selectedIndex = imageList.getSelectedIndex();
+
+            int listSize = imageList.getModel().getSize();
+
+            previousImageButton.setEnabled((listSize > 1) && (selectedIndex != 0));
+        }
+
+        private void enableDisableNextImageButton(JList<File> imageList) {
+
+            int selectedIndex = imageList.getSelectedIndex();
+
+            int listSize = imageList.getModel().getSize();
+
+            nextImageButton.setEnabled((listSize > 1) && (listSize - 1 != selectedIndex));
+        }
+
+        private ImageIcon loadImageIcon(JList<File> imageList) {
+
+            File selectedImageFile = imageList.getSelectedValue();
 
             ImageIcon imageIcon = null;
 
@@ -202,6 +241,28 @@ public class PhotoViewerForm {
                 }
             }
             return imageIcon;
+        }
+    }
+
+    class PreviousImageButtonActionListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent event) {
+
+            int currentSelectedIndex = sourceImageList.getSelectedIndex();
+
+            sourceImageList.setSelectedIndex(currentSelectedIndex - 1);
+        }
+    }
+
+    class NextImageButtonActionListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent event) {
+
+            int currentSelectedIndex = sourceImageList.getSelectedIndex();
+
+            sourceImageList.setSelectedIndex(currentSelectedIndex + 1);
         }
     }
 }
