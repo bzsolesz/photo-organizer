@@ -9,8 +9,8 @@ import java.awt.*;
 public class PhotoOrganizerFrame {
 
     final static String TITLE = "Photo Organizer";
-    final static int WIDTH = 550;
-    final static int HEIGHT = 450;
+    final static int WIDTH = 1000;
+    final static int HEIGHT = 700;
 
     private JFrame internalFrame;
     private FileService fileService;
@@ -25,6 +25,7 @@ public class PhotoOrganizerFrame {
     public void init() {
         internalFrame = createJFrame();
         internalFrame.setTitle(TITLE);
+        internalFrame.setResizable(false);
         internalFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         internalFrame.setMinimumSize(createDimension(WIDTH, HEIGHT));
 

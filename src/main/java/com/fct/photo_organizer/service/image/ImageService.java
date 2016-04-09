@@ -6,5 +6,5 @@ import java.io.IOException;
 
 public interface ImageService {
 
-    ImageIcon loadImageIcon(File imageFile) throws IOException;
+    ImageIcon loadImageIcon(File imageFile, int maxWidth, int maxHeight) throws IOException;
 }

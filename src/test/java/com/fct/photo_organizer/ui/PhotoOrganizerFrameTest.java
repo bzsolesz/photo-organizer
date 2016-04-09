@@ -72,6 +72,11 @@ public class PhotoOrganizerFrameTest {
     }
 
     @Test
+    public void shouldNotTheFrameResizable() {
+        verify(internalFrameMock).setResizable(false);
+    }
+
+    @Test
     public void shouldTheDimensionOfTheFrameSet() {
         verify(internalFrameMock).setMinimumSize(dimensionMock);
     }

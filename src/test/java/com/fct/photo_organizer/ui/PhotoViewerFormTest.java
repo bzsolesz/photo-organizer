@@ -21,6 +21,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class PhotoViewerFormTest {
 
+    private static final Integer SHOW_IMAGE_PANEL_WIDTH = 400;
+    private static final Integer SHOW_IMAGE_PANEL_HEIGHT = 300;
+
     private PhotoViewerForm testedForm;
     private PhotoViewerForm.SelectSourceDirectoryButtonActionListener testedSourceDirectoryActionListener;
     private SourceImageListCellRenderer testedCellRenderer;
@@ -52,6 +55,8 @@ public class PhotoViewerFormTest {
     private ListSelectionEvent listSelectionEventMock;
     @Mock
     private ListModel<File> sourceImageListModelMock;
+    @Mock
+    private JPanel showImagePanelMock;
 
     private File[] images;
 
@@ -80,6 +85,9 @@ public class PhotoViewerFormTest {
         when(listSelectionEventMock.getSource()).thenReturn(sourceImageListMock);
 
         when(sourceImageListMock.getModel()).thenReturn(sourceImageListModelMock);
+
+        when(showImagePanelMock.getWidth()).thenReturn(SHOW_IMAGE_PANEL_WIDTH);
+        when(showImagePanelMock.getHeight()).thenReturn(SHOW_IMAGE_PANEL_HEIGHT);
     }
 
     @Test
@@ -221,7 +229,8 @@ public class PhotoViewerFormTest {
         when(sourceImageListMock.getSelectedValue()).thenReturn(selectedImageFileMock);
 
         ImageIcon imageIconMock = mock(ImageIcon.class);
-        when(imageServiceMock.loadImageIcon(selectedImageFileMock)).thenReturn(imageIconMock);
+        when(imageServiceMock.loadImageIcon(selectedImageFileMock,
+                SHOW_IMAGE_PANEL_WIDTH, SHOW_IMAGE_PANEL_HEIGHT)).thenReturn(imageIconMock);
 
         testedListSelectionListener.valueChanged(listSelectionEventMock);
 
@@ -235,7 +244,7 @@ public class PhotoViewerFormTest {
 
         testedListSelectionListener.valueChanged(listSelectionEventMock);
 
-        verify(imageServiceMock, times(0)).loadImageIcon(null);
+        verify(imageServiceMock, times(0)).loadImageIcon(any(), anyInt(), anyInt());
         verify(showImageLabelMock).setIcon(null);
     }
 
@@ -367,5 +376,6 @@ public class PhotoViewerFormTest {
         testedForm.showImageLabel = showImageLabelMock;
         testedForm.nextImageButton = nextImageButtonMock;
         testedForm.previousImageButton = previousImageButtonMock;
+        testedForm.showImagePanel = showImagePanelMock;
     }
 }
