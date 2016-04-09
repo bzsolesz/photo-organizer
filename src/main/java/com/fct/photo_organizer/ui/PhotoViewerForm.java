@@ -1,59 +1,105 @@
 package com.fct.photo_organizer.ui;
 
 import com.fct.photo_organizer.service.file.FileService;
+import com.fct.photo_organizer.service.image.ImageService;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.plaf.basic.BasicArrowButton;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 
-/**
- * Created by zsolt_balogh on 21/03/2016.
- */
 public class PhotoViewerForm {
-    private JPanel photoViewerFormPanel;
-    private JButton selectSourceDirectoryButton;
-    private JList<File> sourceImageList;
+    JPanel photoViewerFormPanel;
+    JButton selectSourceDirectoryButton;
+    JList<File> sourceImageList;
     private JScrollPane sourceImageScrollPanel;
-    private JFileChooser selectSourceDirectoryFileChooser;
+    JLabel showImageLabel;
+    JPanel showImagePanel;
+    JButton nextImageButton;
+    JButton previousImageButton;
+    private JPanel imageNavigationPanel;
+    SourceDirectoryFileChooser sourceDirectoryFileChooser;
 
-    PhotoViewerForm(FileService fileService) {
+    private FileService fileService;
+    private ImageService imageService;
 
-        initSelectSourceDirectoryFileChooser();
-        initSourceImageList();
+    PhotoViewerForm(FileService fileService, ImageService imageService) {
 
-        selectSourceDirectoryButton.addActionListener((ActionEvent e) ->
-            {
-                if (selectSourceDirectoryFileChooser.showOpenDialog(photoViewerFormPanel) == JFileChooser.APPROVE_OPTION) {
-
-                    File sourceDirectory = selectSourceDirectoryFileChooser.getSelectedFile();
-
-                    File[] imageFiles = fileService.getImageFilesInDirectory(sourceDirectory);
-
-                    sourceImageList.setListData(imageFiles);
-                }
-            });
+        this.fileService = fileService;
+        this.imageService = imageService;
     }
 
-    private void initSelectSourceDirectoryFileChooser() {
+    void init() {
 
-        selectSourceDirectoryFileChooser = new JFileChooser();
-        selectSourceDirectoryFileChooser.setCurrentDirectory(new File("/"));
-        selectSourceDirectoryFileChooser.setDialogTitle("Select image source directory");
-        selectSourceDirectoryFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        selectSourceDirectoryFileChooser.setAcceptAllFileFilterUsed(false);
+        initSourceDirectoryFileChooser();
+        initSourceImageList();
+        initSelectSourceDirectoryButton();
+        initImageNavigationButtons();
+    }
+
+    private void initSourceDirectoryFileChooser() {
+
+        sourceDirectoryFileChooser = createSourceDirectoryFileChooser();
+        sourceDirectoryFileChooser.init();
     }
 
     private void initSourceImageList() {
 
-        sourceImageList.setCellRenderer(new SourceImageListCellRenderer());
+        sourceImageList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        sourceImageList.setCellRenderer(createSourceImageListCellRenderer());
+        sourceImageList.addListSelectionListener(createSourceImageListSelectionListener());
+    }
+
+    private void initSelectSourceDirectoryButton() {
+
+        selectSourceDirectoryButton.addActionListener(createSelectSourceDirectoryButtonActionListener());
+    }
+
+    private void initImageNavigationButtons() {
+
+        previousImageButton.addActionListener(createPreviousImageButtonActionListener());
+        nextImageButton.addActionListener(createNextImageButtonActionListener());
+    }
+
+    SourceDirectoryFileChooser createSourceDirectoryFileChooser() {
+        return new SourceDirectoryFileChooser();
+    }
+
+    SourceImageListCellRenderer createSourceImageListCellRenderer() {
+        return new SourceImageListCellRenderer();
+    }
+
+    SourceImageListSelectionListener createSourceImageListSelectionListener() {
+        return new SourceImageListSelectionListener();
+    }
+
+    SelectSourceDirectoryButtonActionListener createSelectSourceDirectoryButtonActionListener() {
+        return new SelectSourceDirectoryButtonActionListener();
+    }
+
+    NextImageButtonActionListener createNextImageButtonActionListener() {
+        return new NextImageButtonActionListener();
+    }
+
+    PreviousImageButtonActionListener createPreviousImageButtonActionListener() {
+        return new PreviousImageButtonActionListener();
     }
 
     JPanel getPhotoViewerFormPanel() {
 
         return photoViewerFormPanel;
+    }
+
+    void createUIComponents() {
+        nextImageButton = new BasicArrowButton(BasicArrowButton.SOUTH);
+        previousImageButton = new BasicArrowButton(BasicArrowButton.NORTH);
     }
 
     {
@@ -71,15 +117,34 @@ public class PhotoViewerForm {
      * @noinspection ALL
      */
     private void $$$setupUI$$$() {
+        createUIComponents();
         photoViewerFormPanel = new JPanel();
-        photoViewerFormPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+        photoViewerFormPanel.setLayout(new GridLayoutManager(2, 3, new Insets(10, 10, 10, 10), -1, -1));
         sourceImageScrollPanel = new JScrollPane();
-        photoViewerFormPanel.add(sourceImageScrollPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        photoViewerFormPanel.add(sourceImageScrollPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(150, 600), new Dimension(150, 600), new Dimension(150, 600), 0, false));
         sourceImageList = new JList();
+        sourceImageList.setSelectionMode(2);
         sourceImageScrollPanel.setViewportView(sourceImageList);
+        showImagePanel = new JPanel();
+        showImagePanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        photoViewerFormPanel.add(showImagePanel, new GridConstraints(0, 2, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(800, 600), new Dimension(800, 600), new Dimension(800, 600), 0, false));
+        showImageLabel = new JLabel();
+        showImageLabel.setText("");
+        showImagePanel.add(showImageLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(146, 0), null, 0, false));
+        imageNavigationPanel = new JPanel();
+        imageNavigationPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+        photoViewerFormPanel.add(imageNavigationPanel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        previousImageButton.setEnabled(false);
+        previousImageButton.setText("Button");
+        imageNavigationPanel.add(previousImageButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        nextImageButton.setEnabled(false);
+        nextImageButton.setText("Button");
+        imageNavigationPanel.add(nextImageButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         selectSourceDirectoryButton = new JButton();
+        selectSourceDirectoryButton.setHorizontalAlignment(2);
+        selectSourceDirectoryButton.setHorizontalTextPosition(0);
         selectSourceDirectoryButton.setText("Select...");
-        photoViewerFormPanel.add(selectSourceDirectoryButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        photoViewerFormPanel.add(selectSourceDirectoryButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**
@@ -89,16 +154,120 @@ public class PhotoViewerForm {
         return photoViewerFormPanel;
     }
 
-    private static class SourceImageListCellRenderer extends DefaultListCellRenderer {
+    class SelectSourceDirectoryButtonActionListener implements ActionListener {
 
         @Override
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        public void actionPerformed(ActionEvent event) {
 
-            JLabel cellRendererLabel = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            if (sourceDirectoryFileChooser.showOpenDialog(photoViewerFormPanel) == JFileChooser.APPROVE_OPTION) {
 
-            cellRendererLabel.setText(((File) value).getName());
+                File sourceDirectory = sourceDirectoryFileChooser.getSelectedFile();
+
+                File[] images = fileService.getImageFilesInDirectory(sourceDirectory);
+
+                sourceImageList.setListData(images);
+
+                if (images.length > 0) {
+                    sourceImageList.setSelectedIndex(0);
+                } else {
+                    sourceImageList.clearSelection();
+                }
+            }
+        }
+    }
+
+    static class SourceImageListCellRenderer extends DefaultListCellRenderer {
+
+        @Override
+        public Component getListCellRendererComponent(JList list, Object file, int fileIndex, boolean isSelected, boolean cellHasFocus) {
+
+            JLabel cellRendererLabel = getSuperListCellRendererComponent(list, file, fileIndex, isSelected, cellHasFocus);
+
+            cellRendererLabel.setText(((File) file).getName());
 
             return cellRendererLabel;
+        }
+
+        JLabel getSuperListCellRendererComponent(JList list, Object file, int fileIndex, boolean isSelected, boolean cellHasFocus) {
+            return (JLabel) super.getListCellRendererComponent(list, file, fileIndex, isSelected, cellHasFocus);
+        }
+    }
+
+    class SourceImageListSelectionListener implements ListSelectionListener {
+
+        @Override
+        public void valueChanged(ListSelectionEvent event) {
+
+            JList<File> imageList = (JList<File>) event.getSource();
+
+            ImageIcon imageIcon = loadImageIcon(imageList);
+
+            enableDisablePreviousImageButton(imageList);
+            enableDisableNextImageButton(imageList);
+
+            showImageLabel.setIcon(imageIcon);
+        }
+
+        private void enableDisablePreviousImageButton(JList<File> imageList) {
+
+            int selectedIndex = imageList.getSelectedIndex();
+
+            int listSize = imageList.getModel().getSize();
+
+            previousImageButton.setEnabled((listSize > 1) && (selectedIndex != 0));
+        }
+
+        private void enableDisableNextImageButton(JList<File> imageList) {
+
+            int selectedIndex = imageList.getSelectedIndex();
+
+            int listSize = imageList.getModel().getSize();
+
+            nextImageButton.setEnabled((listSize > 1) && (listSize - 1 != selectedIndex));
+        }
+
+        private ImageIcon loadImageIcon(JList<File> imageList) {
+
+            File selectedImageFile = imageList.getSelectedValue();
+
+            ImageIcon imageIcon = null;
+
+            if (selectedImageFile != null) {
+                try {
+
+                    int showImagePanelWidth = showImagePanel.getWidth();
+                    int showImagePanelHeight = showImagePanel.getHeight();
+
+                    imageIcon = imageService.loadImageIcon(selectedImageFile, showImagePanelWidth, showImagePanelHeight);
+
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(photoViewerFormPanel, "An error happened during loading the image!",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+            return imageIcon;
+        }
+    }
+
+    class PreviousImageButtonActionListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent event) {
+
+            int currentSelectedIndex = sourceImageList.getSelectedIndex();
+
+            sourceImageList.setSelectedIndex(currentSelectedIndex - 1);
+        }
+    }
+
+    class NextImageButtonActionListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent event) {
+
+            int currentSelectedIndex = sourceImageList.getSelectedIndex();
+
+            sourceImageList.setSelectedIndex(currentSelectedIndex + 1);
         }
     }
 }
