@@ -1,6 +1,7 @@
 package com.fct.photo_organizer.ui;
 
 import com.fct.photo_organizer.service.file.FileService;
+import com.fct.photo_organizer.service.image.ImageService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
@@ -24,6 +25,8 @@ public class PhotoOrganizerFrameTest {
     @Mock
     private FileService fileServiceMock;
     @Mock
+    private ImageService imageServiceMock;
+    @Mock
     private JFrame internalFrameMock;
     @Mock
     private PhotoViewerForm photoViewerFormMock;
@@ -37,11 +40,11 @@ public class PhotoOrganizerFrameTest {
 
         initMocks(this);
 
-        testedFrame = spy(new PhotoOrganizerFrame(fileServiceMock));
+        testedFrame = spy(new PhotoOrganizerFrame(fileServiceMock, imageServiceMock));
 
         doReturn(internalFrameMock).when(testedFrame).createJFrame();
         doReturn(dimensionMock).when(testedFrame).createDimension(PhotoOrganizerFrame.WIDTH, PhotoOrganizerFrame.HEIGHT);
-        doReturn(photoViewerFormMock).when(testedFrame).createPhotoViewerForm(fileServiceMock);
+        doReturn(photoViewerFormMock).when(testedFrame).createPhotoViewerForm(fileServiceMock, imageServiceMock);
 
         when(photoViewerFormMock.getPhotoViewerFormPanel()).thenReturn(photoViewerPanelMock);
 
@@ -51,6 +54,11 @@ public class PhotoOrganizerFrameTest {
     @Test
     public void shouldHaveItsFileService() {
         assertEquals(fileServiceMock, testedFrame.getFileService());
+    }
+
+    @Test
+    public void shouldHaveItsImageService() {
+        assertEquals(imageServiceMock, testedFrame.getImageService());
     }
 
     @Test
@@ -71,7 +79,7 @@ public class PhotoOrganizerFrameTest {
     @Test
     public void shouldSetContentPanelToPhotoViewerFormPanel() {
 
-        InOrder setContentPaneOrder = Mockito.inOrder(photoViewerFormMock, internalFrameMock);
+        InOrder setContentPaneOrder = inOrder(photoViewerFormMock, internalFrameMock);
 
         setContentPaneOrder.verify(photoViewerFormMock).init();
         setContentPaneOrder.verify(internalFrameMock).setContentPane(photoViewerPanelMock);

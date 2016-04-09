@@ -1,10 +1,10 @@
 package com.fct.photo_organizer.ui;
 
 import com.fct.photo_organizer.service.file.FileService;
+import com.fct.photo_organizer.service.image.ImageService;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -28,10 +28,12 @@ public class PhotoViewerForm {
     SourceDirectoryFileChooser sourceDirectoryFileChooser;
 
     private FileService fileService;
+    private ImageService imageService;
 
-    PhotoViewerForm(FileService fileService) {
+    PhotoViewerForm(FileService fileService, ImageService imageService) {
 
         this.fileService = fileService;
+        this.imageService = imageService;
     }
 
     void init() {
@@ -56,7 +58,7 @@ public class PhotoViewerForm {
 
     private void initSelectSourceDirectoryButton() {
 
-        selectSourceDirectoryButton.addActionListener(createSelectSourceDirectoryButtonActionListener(fileService));
+        selectSourceDirectoryButton.addActionListener(createSelectSourceDirectoryButtonActionListener());
     }
 
     SourceDirectoryFileChooser createSourceDirectoryFileChooser() {
@@ -71,12 +73,8 @@ public class PhotoViewerForm {
         return new SourceImageListSelectionListener();
     }
 
-    void showMessage(String message) {
-        JOptionPane.showMessageDialog(this.getPhotoViewerFormPanel(), message);
-    }
-
-    SelectSourceDirectoryButtonActionListener createSelectSourceDirectoryButtonActionListener(FileService fileService) {
-        return new SelectSourceDirectoryButtonActionListener(fileService);
+    SelectSourceDirectoryButtonActionListener createSelectSourceDirectoryButtonActionListener() {
+        return new SelectSourceDirectoryButtonActionListener();
     }
 
     JPanel getPhotoViewerFormPanel() {
@@ -140,12 +138,6 @@ public class PhotoViewerForm {
 
     class SelectSourceDirectoryButtonActionListener implements ActionListener {
 
-        private FileService fileService;
-
-        public SelectSourceDirectoryButtonActionListener(FileService fileService) {
-            this.fileService = fileService;
-        }
-
         @Override
         public void actionPerformed(ActionEvent event) {
 
@@ -187,9 +179,7 @@ public class PhotoViewerForm {
             File selectedImageFile = imageList.getSelectedValue();
 
             try {
-                Image image = readImage(selectedImageFile);
-
-                ImageIcon imageIcon = createImageIcon(image);
+                ImageIcon imageIcon = imageService.loadImageIcon(selectedImageFile);
 
                 showImageLabel.setIcon(imageIcon);
 
@@ -197,14 +187,6 @@ public class PhotoViewerForm {
                 JOptionPane.showMessageDialog(photoViewerFormPanel, "An error happened during loading the image!",
                         "Error", JOptionPane.ERROR_MESSAGE);
             }
-        }
-
-        ImageIcon createImageIcon(Image image) {
-            return new ImageIcon(image);
-        }
-
-        Image readImage(File imageFile) throws IOException {
-            return ImageIO.read(imageFile);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.fct.photo_organizer.ui;
 
 import com.fct.photo_organizer.service.file.FileService;
+import com.fct.photo_organizer.service.image.ImageService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,9 +14,12 @@ public class PhotoOrganizerFrame {
 
     private JFrame internalFrame;
     private FileService fileService;
+    private ImageService imageService;
 
-    public PhotoOrganizerFrame(FileService fileService) {
+    public PhotoOrganizerFrame(FileService fileService, ImageService imageService) {
+
         this.fileService = fileService;
+        this.imageService = imageService;
     }
 
     public void init() {
@@ -24,7 +28,7 @@ public class PhotoOrganizerFrame {
         internalFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         internalFrame.setMinimumSize(createDimension(WIDTH, HEIGHT));
 
-        PhotoViewerForm photoViewerForm = createPhotoViewerForm(fileService);
+        PhotoViewerForm photoViewerForm = createPhotoViewerForm(fileService, imageService);
         photoViewerForm.init();
 
         internalFrame.setContentPane(photoViewerForm.getPhotoViewerFormPanel());
@@ -38,8 +42,8 @@ public class PhotoOrganizerFrame {
         return new JFrame();
     }
 
-    PhotoViewerForm createPhotoViewerForm(FileService fileService) {
-        return new PhotoViewerForm(fileService);
+    PhotoViewerForm createPhotoViewerForm(FileService fileService, ImageService imageService) {
+        return new PhotoViewerForm(fileService, imageService);
     }
 
     Dimension createDimension(int width, int height) {
@@ -48,5 +52,9 @@ public class PhotoOrganizerFrame {
 
     FileService getFileService() {
         return fileService;
+    }
+
+    ImageService getImageService() {
+        return imageService;
     }
 }

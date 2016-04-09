@@ -1,6 +1,7 @@
 package com.fct.photo_organizer.ui;
 
 import com.fct.photo_organizer.service.file.FileService;
+import com.fct.photo_organizer.service.image.ImageService;
 import com.fct.photo_organizer.ui.PhotoViewerForm.SourceImageListCellRenderer;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +26,8 @@ public class PhotoViewerFormTest {
     @Mock
     private FileService fileServiceMock;
     @Mock
+    private ImageService imageServiceMock;
+    @Mock
     private File sourceDirectoryMock;
     @Mock
     private SourceDirectoryFileChooser sourceDirectoryFileChooserMock;
@@ -44,10 +47,10 @@ public class PhotoViewerFormTest {
 
         initMocks(this);
 
-        testedForm = spy(new PhotoViewerForm(fileServiceMock));
-        testedActionListener = testedForm.new SelectSourceDirectoryButtonActionListener(fileServiceMock);
+        testedForm = spy(new PhotoViewerForm(fileServiceMock, imageServiceMock));
+        testedActionListener = testedForm.new SelectSourceDirectoryButtonActionListener();
         testedCellRenderer = spy(new SourceImageListCellRenderer());
-        testedListSelectionListener = spy(testedForm.new SourceImageListSelectionListener());
+        testedListSelectionListener = testedForm.new SourceImageListSelectionListener();
 
         initImages();
 
@@ -158,11 +161,8 @@ public class PhotoViewerFormTest {
         File selectedImageFileMock = mock(File.class);
         when(sourceImageListMock.getSelectedValue()).thenReturn(selectedImageFileMock);
 
-        Image imageMock = mock(Image.class);
-        doReturn(imageMock).when(testedListSelectionListener).readImage(selectedImageFileMock);
-
         ImageIcon imageIconMock = mock(ImageIcon.class);
-        doReturn(imageIconMock).when(testedListSelectionListener).createImageIcon(imageMock);
+        when(imageServiceMock.loadImageIcon(selectedImageFileMock)).thenReturn(imageIconMock);
 
         testedListSelectionListener.valueChanged(eventMock);
 
@@ -181,7 +181,7 @@ public class PhotoViewerFormTest {
 
         doReturn(sourceDirectoryFileChooserMock).when(testedForm).createSourceDirectoryFileChooser();
         doReturn(testedCellRenderer).when(testedForm).createSourceImageListCellRenderer();
-        doReturn(testedActionListener).when(testedForm).createSelectSourceDirectoryButtonActionListener(fileServiceMock);
+        doReturn(testedActionListener).when(testedForm).createSelectSourceDirectoryButtonActionListener();
         doReturn(testedListSelectionListener).when(testedForm).createSourceImageListSelectionListener();
     }
 
