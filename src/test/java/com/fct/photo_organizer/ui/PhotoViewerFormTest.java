@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.plaf.basic.BasicArrowButton;
+import javax.swing.text.Document;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +31,7 @@ public class PhotoViewerFormTest {
     private PhotoViewerForm.SourceImageListSelectionListener testedListSelectionListener;
     private PhotoViewerForm.NextImageButtonActionListener testedNextImageButtonActionListener;
     private PhotoViewerForm.PreviousImageButtonActionListener testedPreviousImageButtonActionListener;
+    private PhotoViewerForm.AddChildTextFieldDocumentListener testedAddChildTextFieldDocumentListenerMock;
 
     @Mock
     private FileService fileServiceMock;
@@ -57,6 +59,12 @@ public class PhotoViewerFormTest {
     private ListModel<File> sourceImageListModelMock;
     @Mock
     private JPanel showImagePanelMock;
+    @Mock
+    private JTextField addChildTextFieldMock;
+    @Mock
+    private Document addChildTextFieldDocumentMock;
+    @Mock
+    private JButton addChildButtonMock;
 
     private File[] images;
 
@@ -71,6 +79,7 @@ public class PhotoViewerFormTest {
         testedListSelectionListener = testedForm.new SourceImageListSelectionListener();
         testedPreviousImageButtonActionListener = testedForm.new PreviousImageButtonActionListener();
         testedNextImageButtonActionListener = testedForm.new NextImageButtonActionListener();
+        testedAddChildTextFieldDocumentListenerMock = testedForm.new AddChildTextFieldDocumentListener();
 
         initImages();
 
@@ -88,6 +97,8 @@ public class PhotoViewerFormTest {
 
         when(showImagePanelMock.getWidth()).thenReturn(SHOW_IMAGE_PANEL_WIDTH);
         when(showImagePanelMock.getHeight()).thenReturn(SHOW_IMAGE_PANEL_HEIGHT);
+
+        when(addChildTextFieldMock.getDocument()).thenReturn(addChildTextFieldDocumentMock);
     }
 
     @Test
@@ -138,6 +149,16 @@ public class PhotoViewerFormTest {
 
         verify(previousImageButtonMock).addActionListener(testedPreviousImageButtonActionListener);
         verify(nextImageButtonMock).addActionListener(testedNextImageButtonActionListener);
+    }
+
+    @Test
+    public void shouldInitItsAddChildTextFieldWithAppropriateChangeListener() {
+
+        when(addChildTextFieldMock.getDocument()).thenReturn(addChildTextFieldDocumentMock);
+
+        testedForm.init();
+
+        verify(addChildTextFieldMock.getDocument()).addDocumentListener(testedAddChildTextFieldDocumentListenerMock);
     }
 
     @Test
@@ -350,6 +371,36 @@ public class PhotoViewerFormTest {
         verify(sourceImageListMock).setSelectedIndex(currentSelectedIndex + 1);
     }
 
+    @Test
+    public void shouldDisableAddChildButtonIfNoNameIsSpecified() {
+
+        when(addChildTextFieldDocumentMock.getLength()).thenReturn(0);
+
+        testedAddChildTextFieldDocumentListenerMock.removeUpdate(null);
+
+        verify(addChildButtonMock).setEnabled(false);
+    }
+
+    @Test
+    public void shouldNotDisableAddChildButtonIfNameIsSpecified() {
+
+        when(addChildTextFieldDocumentMock.getLength()).thenReturn(1);
+
+        testedAddChildTextFieldDocumentListenerMock.removeUpdate(null);
+
+        verify(addChildButtonMock, times(0)).setEnabled(false);
+    }
+
+    @Test
+    public void shouldEnableAddChildButtonIfNameIsSpecified() {
+
+        when(addChildTextFieldDocumentMock.getLength()).thenReturn(1);
+
+        testedAddChildTextFieldDocumentListenerMock.insertUpdate(null);
+
+        verify(addChildButtonMock).setEnabled(true);
+    }
+
     private void initImages() {
 
         images = new File[2];
@@ -366,6 +417,7 @@ public class PhotoViewerFormTest {
         doReturn(testedListSelectionListener).when(testedForm).createSourceImageListSelectionListener();
         doReturn(testedNextImageButtonActionListener).when(testedForm).createNextImageButtonActionListener();
         doReturn(testedPreviousImageButtonActionListener).when(testedForm).createPreviousImageButtonActionListener();
+        doReturn(testedAddChildTextFieldDocumentListenerMock).when(testedForm).createAddChildTextFieldDocumentListener();
     }
 
     private void initTestedFormToHaveUIElementMocks() {
@@ -377,5 +429,7 @@ public class PhotoViewerFormTest {
         testedForm.nextImageButton = nextImageButtonMock;
         testedForm.previousImageButton = previousImageButtonMock;
         testedForm.showImagePanel = showImagePanelMock;
+        testedForm.addChildTextField = addChildTextFieldMock;
+        testedForm.addChildButton = addChildButtonMock;
     }
 }
