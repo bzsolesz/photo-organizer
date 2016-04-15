@@ -5,11 +5,13 @@ import com.fct.photo_organizer.service.image.ImageService;
 import com.fct.photo_organizer.ui.PhotoViewerForm.SourceImageListCellRenderer;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.plaf.basic.BasicArrowButton;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import java.awt.*;
 import java.io.File;
@@ -32,6 +34,7 @@ public class PhotoViewerFormTest {
     private PhotoViewerForm.NextImageButtonActionListener testedNextImageButtonActionListener;
     private PhotoViewerForm.PreviousImageButtonActionListener testedPreviousImageButtonActionListener;
     private PhotoViewerForm.AddChildTextFieldDocumentListener testedAddChildTextFieldDocumentListenerMock;
+    private PhotoViewerForm.AddChildButtonActionListener testedAddChildButtonActionListener;
 
     @Mock
     private FileService fileServiceMock;
@@ -65,6 +68,14 @@ public class PhotoViewerFormTest {
     private Document addChildTextFieldDocumentMock;
     @Mock
     private JButton addChildButtonMock;
+    @Mock
+    private JPanel assignToChildrenInnerPanelMock;
+    @Mock
+    private BoxLayout boxLayoutMock;
+    @Mock
+    private JScrollPane assignToChildrenScrollPanelMock;
+    @Mock
+    private JViewport assignToChildrenScrollPanelViewportMock;
 
     private File[] images;
 
@@ -80,6 +91,7 @@ public class PhotoViewerFormTest {
         testedPreviousImageButtonActionListener = testedForm.new PreviousImageButtonActionListener();
         testedNextImageButtonActionListener = testedForm.new NextImageButtonActionListener();
         testedAddChildTextFieldDocumentListenerMock = testedForm.new AddChildTextFieldDocumentListener();
+        testedAddChildButtonActionListener = spy(testedForm.new AddChildButtonActionListener());
 
         initImages();
 
@@ -99,6 +111,10 @@ public class PhotoViewerFormTest {
         when(showImagePanelMock.getHeight()).thenReturn(SHOW_IMAGE_PANEL_HEIGHT);
 
         when(addChildTextFieldMock.getDocument()).thenReturn(addChildTextFieldDocumentMock);
+
+        when(assignToChildrenScrollPanelViewportMock.getView()).thenReturn(assignToChildrenInnerPanelMock);
+
+        when(assignToChildrenScrollPanelMock.getViewport()).thenReturn(assignToChildrenScrollPanelViewportMock);
     }
 
     @Test
@@ -159,6 +175,22 @@ public class PhotoViewerFormTest {
         testedForm.init();
 
         verify(addChildTextFieldMock.getDocument()).addDocumentListener(testedAddChildTextFieldDocumentListenerMock);
+    }
+
+    @Test
+    public void shouldInitItsAddChildButtonWithAppropriateActionListener() {
+
+        testedForm.init();
+
+        verify(addChildButtonMock).addActionListener(testedAddChildButtonActionListener);
+    }
+
+    @Test
+    public void shouldInitItsAssignToChildrenPanelWithBoxLayout() {
+
+        testedForm.init();
+
+        verify(assignToChildrenInnerPanelMock).setLayout(boxLayoutMock);
     }
 
     @Test
@@ -401,6 +433,55 @@ public class PhotoViewerFormTest {
         verify(addChildButtonMock).setEnabled(true);
     }
 
+    @Test
+    public void shouldAddAnAssignToChildPanel() throws BadLocationException {
+
+        String childName = "testName";
+        when(addChildTextFieldDocumentMock.getText(0, childName.length())).thenReturn(childName);
+        when(addChildTextFieldDocumentMock.getLength()).thenReturn(childName.length());
+
+        JPanel assignToChildPanelMock = mock(JPanel.class);
+        doReturn(assignToChildPanelMock).when(testedAddChildButtonActionListener).createPanel();
+
+        FlowLayout panelFlowLayoutMock = mock(FlowLayout.class);
+        doReturn(panelFlowLayoutMock).when(testedAddChildButtonActionListener).createFlowLayout(FlowLayout.LEFT);
+
+        Dimension panelDimensionMock = mock(Dimension.class);
+        doReturn(panelDimensionMock).when(testedAddChildButtonActionListener).
+                createDimension(PhotoViewerForm.ASSIGN_TO_CHILD_PANEL_WIDTH, PhotoViewerForm.ASSIGN_TO_CHILD_PANEL_HEIGHT);
+
+        JCheckBox childCheckboxMock = mock(JCheckBox.class);
+        doReturn(childCheckboxMock).when(testedAddChildButtonActionListener).createCheckbox();
+
+        JLabel childNameLabelMock = mock(JLabel.class);
+        doReturn(childNameLabelMock).when(testedAddChildButtonActionListener).createLabel(childName);
+
+        InOrder inTheProperOrder = inOrder(assignToChildrenInnerPanelMock, assignToChildPanelMock);
+
+        testedAddChildButtonActionListener.actionPerformed(null);
+
+        inTheProperOrder.verify(assignToChildPanelMock).setLayout(panelFlowLayoutMock);
+        inTheProperOrder.verify(assignToChildPanelMock).setMaximumSize(panelDimensionMock);
+        inTheProperOrder.verify(assignToChildPanelMock).add(childCheckboxMock);
+        inTheProperOrder.verify(assignToChildPanelMock).add(childNameLabelMock);
+        inTheProperOrder.verify(assignToChildrenInnerPanelMock).add(assignToChildPanelMock);
+        inTheProperOrder.verify(assignToChildrenInnerPanelMock).revalidate();
+        inTheProperOrder.verify(assignToChildrenInnerPanelMock).repaint();
+    }
+
+    @Test
+    public void shouldClearAndRefocusTheAddChildTextFieldAfterAddingAssignToChildPanel() throws BadLocationException {
+
+        int childNameLenght = 8;
+
+        when(addChildTextFieldDocumentMock.getLength()).thenReturn(8);
+
+        testedAddChildButtonActionListener.actionPerformed(null);
+
+        verify(addChildTextFieldDocumentMock).remove(0, childNameLenght);
+        verify(addChildTextFieldMock).requestFocus();
+    }
+
     private void initImages() {
 
         images = new File[2];
@@ -418,6 +499,8 @@ public class PhotoViewerFormTest {
         doReturn(testedNextImageButtonActionListener).when(testedForm).createNextImageButtonActionListener();
         doReturn(testedPreviousImageButtonActionListener).when(testedForm).createPreviousImageButtonActionListener();
         doReturn(testedAddChildTextFieldDocumentListenerMock).when(testedForm).createAddChildTextFieldDocumentListener();
+        doReturn(testedAddChildButtonActionListener).when(testedForm).createAddChildButtonActionListener();
+        doReturn(boxLayoutMock).when(testedForm).createBoxLayout(assignToChildrenInnerPanelMock, BoxLayout.Y_AXIS);
     }
 
     private void initTestedFormToHaveUIElementMocks() {
@@ -431,5 +514,7 @@ public class PhotoViewerFormTest {
         testedForm.showImagePanel = showImagePanelMock;
         testedForm.addChildTextField = addChildTextFieldMock;
         testedForm.addChildButton = addChildButtonMock;
+        testedForm.assignToChildrenInnerPanel = assignToChildrenInnerPanelMock;
+        testedForm.assignToChildrenScrollPanel = assignToChildrenScrollPanelMock;
     }
 }
