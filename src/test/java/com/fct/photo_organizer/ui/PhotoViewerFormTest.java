@@ -10,7 +10,6 @@ import org.mockito.Mock;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import java.awt.*;
@@ -191,18 +190,6 @@ public class PhotoViewerFormTest {
         testedForm.init();
 
         verify(assignToChildrenInnerPanelMock).setLayout(boxLayoutMock);
-    }
-
-    @Test
-    public void shouldCreateItsNextAndPreviousImageButtons() {
-
-        testedForm.createUIComponents();
-
-        assertTrue(testedForm.previousImageButton instanceof BasicArrowButton);
-        assertEquals(BasicArrowButton.NORTH, ((BasicArrowButton)testedForm.previousImageButton).getDirection());
-
-        assertTrue(testedForm.nextImageButton instanceof BasicArrowButton);
-        assertEquals(BasicArrowButton.SOUTH, ((BasicArrowButton)testedForm.nextImageButton).getDirection());
     }
 
     @Test
@@ -509,11 +496,11 @@ public class PhotoViewerFormTest {
         testedForm.sourceImageList = sourceImageListMock;
         testedForm.selectSourceDirectoryButton = selectSourceDirectoryButtonMock;
         testedForm.showImageLabel = showImageLabelMock;
-        testedForm.nextImageButton = nextImageButtonMock;
-        testedForm.previousImageButton = previousImageButtonMock;
+        testedForm.nextPhotoButton = nextImageButtonMock;
+        testedForm.previousPhotoButton = previousImageButtonMock;
         testedForm.showImagePanel = showImagePanelMock;
         testedForm.addChildTextField = addChildTextFieldMock;
-        testedForm.addChildButton = addChildButtonMock;
+        testedForm.addTargetDirectoryButton = addChildButtonMock;
         testedForm.assignToChildrenInnerPanel = assignToChildrenInnerPanelMock;
         testedForm.assignToChildrenScrollPanel = assignToChildrenScrollPanelMock;
     }
