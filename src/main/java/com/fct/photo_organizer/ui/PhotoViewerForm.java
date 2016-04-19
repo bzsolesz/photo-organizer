@@ -6,12 +6,8 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,23 +27,22 @@ public class PhotoViewerForm {
     private JPanel imageNavigationPanel;
     private JPanel assignmentPanel;
     private JPanel addTargetDirectoryPanel;
-    JTextField addChildTextField;
     JButton addTargetDirectoryButton;
     private JPanel selectSourceDirectoryPanel;
-    JScrollPane assignToChildrenScrollPanel;
-    JPanel assignToChildrenInnerPanel;
+    JScrollPane photoTargetingScrollPanel;
+    JPanel photoTargetingInnerPanel;
     private JPanel sourceDirectoryTitlePanel;
     private JLabel sourceDirectoryLabel;
     private JPanel targetDirectoriesPanel;
     private JLabel targetDirectoriesLabel;
-    private JButton selectTargetDirectory;
-    SourceDirectoryFileChooser sourceDirectoryFileChooser;
+    DirectoryFileChooser directoryFileChooser;
+
 
     private FileService fileService;
     private ImageService imageService;
 
-    static final int ASSIGN_TO_CHILD_PANEL_WIDTH = 200;
-    static final int ASSIGN_TO_CHILD_PANEL_HEIGHT = 25;
+    static final int ADD_TARGET_DIRECTORY_TO_PHOTO_PANEL_WIDTH = 200;
+    static final int ADD_TARGET_DIRECTORY_TO_PHOTO_PANEL_HEIGHT = 25;
 
     PhotoViewerForm(FileService fileService, ImageService imageService) {
 
@@ -57,19 +52,18 @@ public class PhotoViewerForm {
 
     void init() {
 
-        initSourceDirectoryFileChooser();
+        initDirectoryFileChooser();
         initSourceImageList();
         initSelectSourceDirectoryButton();
         initImageNavigationButtons();
-        initAddChildTextField();
         initAddChildButton();
         initAssignToChildrenPanel();
     }
 
-    private void initSourceDirectoryFileChooser() {
+    private void initDirectoryFileChooser() {
 
-        sourceDirectoryFileChooser = createSourceDirectoryFileChooser();
-        sourceDirectoryFileChooser.init();
+        directoryFileChooser = createDirectoryFileChooser();
+        directoryFileChooser.init();
     }
 
     private void initSourceImageList() {
@@ -90,11 +84,6 @@ public class PhotoViewerForm {
         nextPhotoButton.addActionListener(createNextImageButtonActionListener());
     }
 
-    private void initAddChildTextField() {
-
-        addChildTextField.getDocument().addDocumentListener(createAddChildTextFieldDocumentListener());
-    }
-
     private void initAddChildButton() {
 
         addTargetDirectoryButton.addActionListener(createAddChildButtonActionListener());
@@ -102,11 +91,11 @@ public class PhotoViewerForm {
 
     private void initAssignToChildrenPanel() {
 
-        assignToChildrenInnerPanel.setLayout(createBoxLayout(assignToChildrenInnerPanel, BoxLayout.Y_AXIS));
+        photoTargetingInnerPanel.setLayout(createBoxLayout(photoTargetingInnerPanel, BoxLayout.Y_AXIS));
     }
 
-    SourceDirectoryFileChooser createSourceDirectoryFileChooser() {
-        return new SourceDirectoryFileChooser();
+    DirectoryFileChooser createDirectoryFileChooser() {
+        return new DirectoryFileChooser();
     }
 
     SourceImageListCellRenderer createSourceImageListCellRenderer() {
@@ -129,12 +118,8 @@ public class PhotoViewerForm {
         return new PreviousImageButtonActionListener();
     }
 
-    AddChildTextFieldDocumentListener createAddChildTextFieldDocumentListener() {
-        return new AddChildTextFieldDocumentListener();
-    }
-
-    AddChildButtonActionListener createAddChildButtonActionListener() {
-        return new AddChildButtonActionListener();
+    AddTargetDirectoryButtonActionListener createAddChildButtonActionListener() {
+        return new AddTargetDirectoryButtonActionListener();
     }
 
     BoxLayout createBoxLayout(Container target, int axis) {
@@ -162,21 +147,21 @@ public class PhotoViewerForm {
      */
     private void $$$setupUI$$$() {
         photoViewerFormPanel = new JPanel();
-        photoViewerFormPanel.setLayout(new GridLayoutManager(4, 5, new Insets(10, 10, 10, 10), -1, -1));
+        photoViewerFormPanel.setLayout(new GridLayoutManager(3, 5, new Insets(10, 10, 10, 10), -1, -1));
         sourceImageScrollPanel = new JScrollPane();
-        photoViewerFormPanel.add(sourceImageScrollPanel, new GridConstraints(2, 0, 2, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, 550), new Dimension(175, 550), new Dimension(175, 550), 0, false));
+        photoViewerFormPanel.add(sourceImageScrollPanel, new GridConstraints(1, 0, 2, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, 600), new Dimension(175, 600), new Dimension(175, 600), 0, false));
         sourceImageList = new JList();
         sourceImageList.setSelectionMode(2);
         sourceImageScrollPanel.setViewportView(sourceImageList);
         showImagePanel = new JPanel();
         showImagePanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(showImagePanel, new GridConstraints(1, 3, 3, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(800, 600), new Dimension(800, 600), new Dimension(800, 600), 0, false));
+        photoViewerFormPanel.add(showImagePanel, new GridConstraints(1, 3, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(800, 600), new Dimension(800, 600), new Dimension(800, 600), 0, false));
         showImageLabel = new JLabel();
         showImageLabel.setText("");
         showImagePanel.add(showImageLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(146, 0), null, 0, false));
         imageNavigationPanel = new JPanel();
         imageNavigationPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(imageNavigationPanel, new GridConstraints(2, 2, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        photoViewerFormPanel.add(imageNavigationPanel, new GridConstraints(1, 2, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         previousPhotoButton = new JButton();
         previousPhotoButton.setEnabled(false);
         previousPhotoButton.setText("Prev");
@@ -187,48 +172,43 @@ public class PhotoViewerForm {
         imageNavigationPanel.add(nextPhotoButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         assignmentPanel = new JPanel();
         assignmentPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(assignmentPanel, new GridConstraints(2, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, 550), new Dimension(175, 550), new Dimension(175, 550), 0, false));
-        assignToChildrenScrollPanel = new JScrollPane();
-        assignToChildrenScrollPanel.setEnabled(false);
-        assignToChildrenScrollPanel.setHorizontalScrollBarPolicy(30);
-        assignToChildrenScrollPanel.setVerticalScrollBarPolicy(20);
-        assignmentPanel.add(assignToChildrenScrollPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        assignToChildrenInnerPanel = new JPanel();
-        assignToChildrenInnerPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        assignToChildrenScrollPanel.setViewportView(assignToChildrenInnerPanel);
-        sourceDirectoryTitlePanel = new JPanel();
-        sourceDirectoryTitlePanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(sourceDirectoryTitlePanel, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, -1), new Dimension(175, -1), new Dimension(175, -1), 0, false));
-        sourceDirectoryLabel = new JLabel();
-        sourceDirectoryLabel.setText("Source Directory");
-        sourceDirectoryTitlePanel.add(sourceDirectoryLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        targetDirectoriesPanel = new JPanel();
-        targetDirectoriesPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(targetDirectoriesPanel, new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, -1), new Dimension(175, -1), new Dimension(175, -1), 0, false));
-        targetDirectoriesLabel = new JLabel();
-        targetDirectoriesLabel.setText("Target Directories");
-        targetDirectoriesPanel.add(targetDirectoriesLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        addTargetDirectoryPanel = new JPanel();
-        addTargetDirectoryPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(addTargetDirectoryPanel, new GridConstraints(1, 4, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        addChildTextField = new JTextField();
-        addTargetDirectoryPanel.add(addChildTextField, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, -1), new Dimension(175, -1), new Dimension(175, -1), 0, false));
-        addTargetDirectoryButton = new JButton();
-        addTargetDirectoryButton.setEnabled(false);
-        addTargetDirectoryButton.setHorizontalTextPosition(11);
-        addTargetDirectoryButton.setText("Add");
-        addTargetDirectoryPanel.add(addTargetDirectoryButton, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        selectTargetDirectory = new JButton();
-        selectTargetDirectory.setText("Select...");
-        addTargetDirectoryPanel.add(selectTargetDirectory, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        photoViewerFormPanel.add(assignmentPanel, new GridConstraints(1, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, 600), new Dimension(175, 600), new Dimension(175, 600), 0, false));
+        photoTargetingScrollPanel = new JScrollPane();
+        photoTargetingScrollPanel.setEnabled(false);
+        photoTargetingScrollPanel.setHorizontalScrollBarPolicy(30);
+        photoTargetingScrollPanel.setVerticalScrollBarPolicy(20);
+        assignmentPanel.add(photoTargetingScrollPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        photoTargetingInnerPanel = new JPanel();
+        photoTargetingInnerPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        photoTargetingScrollPanel.setViewportView(photoTargetingInnerPanel);
         selectSourceDirectoryPanel = new JPanel();
-        selectSourceDirectoryPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(selectSourceDirectoryPanel, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, -1), new Dimension(175, -1), new Dimension(175, -1), 0, false));
+        selectSourceDirectoryPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+        photoViewerFormPanel.add(selectSourceDirectoryPanel, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, -1), new Dimension(175, -1), new Dimension(175, -1), 0, false));
         selectSourceDirectoryButton = new JButton();
         selectSourceDirectoryButton.setHorizontalAlignment(2);
         selectSourceDirectoryButton.setHorizontalTextPosition(0);
         selectSourceDirectoryButton.setText("Select...");
-        selectSourceDirectoryPanel.add(selectSourceDirectoryButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        selectSourceDirectoryPanel.add(selectSourceDirectoryButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        sourceDirectoryTitlePanel = new JPanel();
+        sourceDirectoryTitlePanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        selectSourceDirectoryPanel.add(sourceDirectoryTitlePanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, -1), new Dimension(175, -1), new Dimension(175, -1), 0, false));
+        sourceDirectoryLabel = new JLabel();
+        sourceDirectoryLabel.setText("Source Directory");
+        sourceDirectoryTitlePanel.add(sourceDirectoryLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        addTargetDirectoryPanel = new JPanel();
+        addTargetDirectoryPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+        photoViewerFormPanel.add(addTargetDirectoryPanel, new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, -1), new Dimension(175, -1), new Dimension(175, -1), 0, false));
+        addTargetDirectoryButton = new JButton();
+        addTargetDirectoryButton.setEnabled(true);
+        addTargetDirectoryButton.setHorizontalTextPosition(11);
+        addTargetDirectoryButton.setText("Add...");
+        addTargetDirectoryPanel.add(addTargetDirectoryButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        targetDirectoriesPanel = new JPanel();
+        targetDirectoriesPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        addTargetDirectoryPanel.add(targetDirectoriesPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, -1), new Dimension(175, -1), new Dimension(175, -1), 0, false));
+        targetDirectoriesLabel = new JLabel();
+        targetDirectoriesLabel.setText("Target Directories");
+        targetDirectoriesPanel.add(targetDirectoriesLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**
@@ -243,9 +223,9 @@ public class PhotoViewerForm {
         @Override
         public void actionPerformed(ActionEvent event) {
 
-            if (sourceDirectoryFileChooser.showOpenDialog(photoViewerFormPanel) == JFileChooser.APPROVE_OPTION) {
+            if (directoryFileChooser.showOpenDialog(photoViewerFormPanel) == JFileChooser.APPROVE_OPTION) {
 
-                File sourceDirectory = sourceDirectoryFileChooser.getSelectedFile();
+                File sourceDirectory = directoryFileChooser.getSelectedFile();
 
                 File[] images = fileService.getImageFilesInDirectory(sourceDirectory);
 
@@ -355,72 +335,33 @@ public class PhotoViewerForm {
         }
     }
 
-    class AddChildTextFieldDocumentListener implements DocumentListener {
-
-        @Override
-        public void insertUpdate(DocumentEvent event) {
-
-            if (addChildTextField.getDocument().getLength() == 1) {
-
-                addTargetDirectoryButton.setEnabled(true);
-            }
-        }
-
-        @Override
-        public void removeUpdate(DocumentEvent event) {
-
-            if (addChildTextField.getDocument().getLength() == 0) {
-
-                addTargetDirectoryButton.setEnabled(false);
-            }
-        }
-
-        @Override
-        public void changedUpdate(DocumentEvent event) {
-        }
-    }
-
-    class AddChildButtonActionListener implements ActionListener {
+    class AddTargetDirectoryButtonActionListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent event) {
 
-            try {
-                JPanel assignToChildPanel = createPanel();
-                assignToChildPanel.setLayout(createFlowLayout(FlowLayout.LEFT));
-                assignToChildPanel.setMaximumSize(
-                        createDimension(ASSIGN_TO_CHILD_PANEL_WIDTH, ASSIGN_TO_CHILD_PANEL_HEIGHT));
+            if (directoryFileChooser.showOpenDialog(photoViewerFormPanel) == JFileChooser.APPROVE_OPTION) {
 
-                assignToChildPanel.add(createCheckbox());
-                assignToChildPanel.add(createChildNameLabel());
+                File selectedDirectory = directoryFileChooser.getSelectedFile();
 
-                ((JPanel) assignToChildrenScrollPanel.getViewport().getView()).add(assignToChildPanel);
-                assignToChildrenInnerPanel.revalidate();
-                assignToChildrenInnerPanel.repaint();
+                try {
+                    JPanel addTargetDirectoryToPhotoPanel = createPanel();
+                    addTargetDirectoryToPhotoPanel.setLayout(createFlowLayout(FlowLayout.LEFT));
+                    addTargetDirectoryToPhotoPanel.setMaximumSize(
+                            createDimension(ADD_TARGET_DIRECTORY_TO_PHOTO_PANEL_WIDTH, ADD_TARGET_DIRECTORY_TO_PHOTO_PANEL_HEIGHT));
 
-                clearAddChildTextField();
-                addChildTextField.requestFocus();
+                    addTargetDirectoryToPhotoPanel.add(createCheckbox());
+                    addTargetDirectoryToPhotoPanel.add(createLabel(selectedDirectory.getName()));
 
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(photoViewerFormPanel, "An error happened!",
-                        "Error", JOptionPane.ERROR_MESSAGE);
+                    ((JPanel) photoTargetingScrollPanel.getViewport().getView()).add(addTargetDirectoryToPhotoPanel);
+                    photoTargetingInnerPanel.revalidate();
+                    photoTargetingInnerPanel.repaint();
+
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(photoViewerFormPanel, "An error happened!",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
-        }
-
-        private JLabel createChildNameLabel() throws BadLocationException {
-
-            Document addChildTextFieldDocument = addChildTextField.getDocument();
-
-            String childName = addChildTextFieldDocument.getText(0, addChildTextFieldDocument.getLength());
-
-            return createLabel(childName);
-        }
-
-        private void clearAddChildTextField() throws BadLocationException {
-
-            Document addChildTextFieldDocument = addChildTextField.getDocument();
-
-            addChildTextFieldDocument.remove(0, addChildTextFieldDocument.getLength());
         }
 
         JPanel createPanel() {
