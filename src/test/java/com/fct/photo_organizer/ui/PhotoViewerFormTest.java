@@ -2,6 +2,7 @@ package com.fct.photo_organizer.ui;
 
 import com.fct.photo_organizer.service.file.FileService;
 import com.fct.photo_organizer.service.image.ImageService;
+import com.fct.photo_organizer.service.photo_targeting.PhotoTargetingService;
 import com.fct.photo_organizer.ui.PhotoViewerForm.SourceImageListCellRenderer;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,8 +13,10 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.text.BadLocationException;
 import java.awt.*;
+import java.awt.event.ItemEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -27,23 +30,30 @@ public class PhotoViewerFormTest {
     private PhotoViewerForm testedForm;
     private PhotoViewerForm.SelectSourceDirectoryButtonActionListener testedSourceDirectoryActionListener;
     private SourceImageListCellRenderer testedCellRenderer;
-    private PhotoViewerForm.SourceImageListSelectionListener testedListSelectionListener;
+    private PhotoViewerForm.SourcePhotosListSelectionListener testedListSelectionListener;
     private PhotoViewerForm.NextImageButtonActionListener testedNextImageButtonActionListener;
     private PhotoViewerForm.PreviousImageButtonActionListener testedPreviousImageButtonActionListener;
     private PhotoViewerForm.AddTargetDirectoryButtonActionListener testedAddTargetDirectoryButtonActionListener;
+    private PhotoViewerForm.TargetDirectoryCheckBoxItemListener testedTargetDirectoryCheckboxItemListenerMock;
 
     @Mock
     private FileService fileServiceMock;
     @Mock
+    private PhotoTargetingService photoTargetingServiceMock;
+    @Mock
     private ImageService imageServiceMock;
     @Mock
-    private File selectedDirectoryMock;
+    private File selectedSourceDirectoryMock;
     @Mock
-    private DirectoryFileChooser directoryFileChooserMock;
+    private File selectedTargetDirectoryMock;
+    @Mock
+    private PhotoDirectoryFileChooser sourceDirectoryFileChooserMock;
+    @Mock
+    private DirectoryFileChooser targetDirectoryFileChooserMock;
     @Mock
     private JPanel photoViewerPanelMock;
     @Mock
-    private JList<File> sourceImageListMock;
+    private JList<File> sourcePhotoListMock;
     @Mock
     private JButton selectSourceDirectoryButtonMock;
     @Mock
@@ -53,9 +63,9 @@ public class PhotoViewerFormTest {
     @Mock
     private JButton previousPhotoButtonMock;
     @Mock
-    private ListSelectionEvent listSelectionEventMock;
+    private ListSelectionEvent sourcePhotoListSelectionEventMock;
     @Mock
-    private ListModel<File> sourceImageListModelMock;
+    private ListModel<File> sourcePhotoListModelMock;
     @Mock
     private JPanel showImagePanelMock;
     @Mock
@@ -68,35 +78,53 @@ public class PhotoViewerFormTest {
     private JScrollPane assignToChildrenScrollPanelMock;
     @Mock
     private JViewport assignToChildrenScrollPanelViewportMock;
+    @Mock
+    private JCheckBox targetDirectoryCheckboxMock1;
+    @Mock
+    private JCheckBox targetDirectoryCheckboxMock2;
+    @Mock
+    private JCheckBox targetDirectoryCheckboxMock3;
+    @Mock
+    private ItemEvent checkBoxChangedMock;
+    @Mock
+    private File selectedPhotoFileMock;
 
     private File[] images;
+    private Set<File> selectedPhotoTargetDirectories;
+    private HashMap<File, JCheckBox> targetDirectoryCheckboxes;
 
     @Before
     public void setup() {
 
         initMocks(this);
 
-        testedForm = spy(new PhotoViewerForm(fileServiceMock, imageServiceMock));
+        testedForm = spy(new PhotoViewerForm(fileServiceMock, imageServiceMock, photoTargetingServiceMock));
         testedSourceDirectoryActionListener = testedForm.new SelectSourceDirectoryButtonActionListener();
         testedCellRenderer = spy(new SourceImageListCellRenderer());
-        testedListSelectionListener = testedForm.new SourceImageListSelectionListener();
+        testedListSelectionListener = testedForm.new SourcePhotosListSelectionListener();
         testedPreviousImageButtonActionListener = testedForm.new PreviousImageButtonActionListener();
         testedNextImageButtonActionListener = testedForm.new NextImageButtonActionListener();
         testedAddTargetDirectoryButtonActionListener = spy(testedForm.new AddTargetDirectoryButtonActionListener());
+        testedTargetDirectoryCheckboxItemListenerMock = testedForm.new TargetDirectoryCheckBoxItemListener();
 
         initImages();
+        initSelectedPhotoTargetDirectoriesAndCheckboxes();
 
         initTestedFormToCreateMocks();
         initTestedFormToHaveUIElementMocks();
 
-        when(directoryFileChooserMock.getSelectedFile()).thenReturn(selectedDirectoryMock);
-        when(directoryFileChooserMock.showOpenDialog(photoViewerPanelMock)).thenReturn(JFileChooser.APPROVE_OPTION);
+        when(sourceDirectoryFileChooserMock.getSelectedFile()).thenReturn(selectedSourceDirectoryMock);
+        when(sourceDirectoryFileChooserMock.showOpenDialog(photoViewerPanelMock)).thenReturn(JFileChooser.APPROVE_OPTION);
 
-        when(fileServiceMock.getImageFilesInDirectory(selectedDirectoryMock)).thenReturn(images);
+        when(targetDirectoryFileChooserMock.getSelectedFile()).thenReturn(selectedTargetDirectoryMock);
+        when(targetDirectoryFileChooserMock.showOpenDialog(photoViewerPanelMock)).thenReturn(JFileChooser.APPROVE_OPTION);
 
-        when(listSelectionEventMock.getSource()).thenReturn(sourceImageListMock);
+        when(fileServiceMock.getImageFilesInDirectory(selectedSourceDirectoryMock)).thenReturn(images);
 
-        when(sourceImageListMock.getModel()).thenReturn(sourceImageListModelMock);
+        when(sourcePhotoListSelectionEventMock.getSource()).thenReturn(sourcePhotoListMock);
+
+        when(sourcePhotoListMock.getModel()).thenReturn(sourcePhotoListModelMock);
+        when(sourcePhotoListMock.getSelectedValue()).thenReturn(selectedPhotoFileMock);
 
         when(showImagePanelMock.getWidth()).thenReturn(SHOW_IMAGE_PANEL_WIDTH);
         when(showImagePanelMock.getHeight()).thenReturn(SHOW_IMAGE_PANEL_HEIGHT);
@@ -107,12 +135,21 @@ public class PhotoViewerFormTest {
     }
 
     @Test
-    public void shouldInitItsDirectoryFileChooser() {
+    public void shouldInitItsSourceDirectoryFileChooser() {
 
         testedForm.init();
 
-        assertEquals(directoryFileChooserMock, testedForm.directoryFileChooser);
-        verify(directoryFileChooserMock).init();
+        assertEquals(sourceDirectoryFileChooserMock, testedForm.sourceDirectoryFileChooser);
+        verify(sourceDirectoryFileChooserMock).init();
+    }
+
+    @Test
+    public void shouldInitItsTargetDirectoryFileChooser() {
+
+        testedForm.init();
+
+        assertEquals(targetDirectoryFileChooserMock, testedForm.targetDirectoryFileChooser);
+        verify(targetDirectoryFileChooserMock).init();
     }
 
     @Test
@@ -120,7 +157,7 @@ public class PhotoViewerFormTest {
 
         testedForm.init();
 
-        verify(sourceImageListMock).setCellRenderer(testedCellRenderer);
+        verify(sourcePhotoListMock).setCellRenderer(testedCellRenderer);
     }
 
     @Test
@@ -128,7 +165,7 @@ public class PhotoViewerFormTest {
 
         testedForm.init();
 
-        verify(sourceImageListMock).setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        verify(sourcePhotoListMock).setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
 
     @Test
@@ -136,7 +173,7 @@ public class PhotoViewerFormTest {
 
         testedForm.init();
 
-        verify(sourceImageListMock).addListSelectionListener(testedListSelectionListener);
+        verify(sourcePhotoListMock).addListSelectionListener(testedListSelectionListener);
     }
 
     @Test
@@ -162,6 +199,7 @@ public class PhotoViewerFormTest {
         testedForm.init();
 
         verify(addTargetDirectoryButtonMock).addActionListener(testedAddTargetDirectoryButtonActionListener);
+        verify(addTargetDirectoryButtonMock).setEnabled(false);
     }
 
     @Test
@@ -179,7 +217,7 @@ public class PhotoViewerFormTest {
 
         testedSourceDirectoryActionListener.actionPerformed(null);
 
-        verify(sourceImageListMock).setListData(images);
+        verify(sourcePhotoListMock).setListData(images);
     }
 
     @Test
@@ -189,7 +227,30 @@ public class PhotoViewerFormTest {
 
         testedSourceDirectoryActionListener.actionPerformed(null);
 
-        verify(sourceImageListMock).setSelectedIndex(0);
+        verify(sourcePhotoListMock).setSelectedIndex(0);
+    }
+
+    @Test
+    public void shouldInitPhotoTargetingWithPhotosFromSelectedSourceDirectory() {
+
+        testedForm.init();
+
+        testedSourceDirectoryActionListener.actionPerformed(null);
+
+        verify(photoTargetingServiceMock).initPhotoTargeting(Arrays.asList(images));
+        verify(targetDirectoryCheckboxMock1).setSelected(false);
+        verify(targetDirectoryCheckboxMock2).setSelected(false);
+        verify(targetDirectoryCheckboxMock3).setSelected(false);
+    }
+
+    @Test
+    public void shouldEnableAddTargetDirectoryButtonAfterSourceDirectoryIsSelected() {
+
+        testedForm.init();
+
+        testedSourceDirectoryActionListener.actionPerformed(null);
+
+        verify(addTargetDirectoryButtonMock).setEnabled(true);
     }
 
     @Test
@@ -197,24 +258,11 @@ public class PhotoViewerFormTest {
 
         testedForm.init();
 
-        when(directoryFileChooserMock.showOpenDialog(photoViewerPanelMock)).thenReturn(JFileChooser.CANCEL_OPTION);
+        when(sourceDirectoryFileChooserMock.showOpenDialog(photoViewerPanelMock)).thenReturn(JFileChooser.CANCEL_OPTION);
 
         testedSourceDirectoryActionListener.actionPerformed(null);
 
-        verify(sourceImageListMock, times(0)).setListData(images);
-    }
-
-    @Test
-    public void shouldClearImageListForSelectedSourceDirectoryWithoutImage() {
-
-        testedForm.init();
-
-        when(fileServiceMock.getImageFilesInDirectory(selectedDirectoryMock)).thenReturn(new File[0]);
-
-        testedSourceDirectoryActionListener.actionPerformed(null);
-
-        verify(sourceImageListMock, times(0)).setSelectedIndex(anyInt());
-        verify(sourceImageListMock).clearSelection();
+        verify(sourcePhotoListMock, times(0)).setListData(images);
     }
 
     @Test
@@ -245,37 +293,23 @@ public class PhotoViewerFormTest {
     @Test
     public void shouldDisplayTheSelectedImage() throws Exception {
 
-        File selectedImageFileMock = mock(File.class);
-        when(sourceImageListMock.getSelectedValue()).thenReturn(selectedImageFileMock);
-
         ImageIcon imageIconMock = mock(ImageIcon.class);
-        when(imageServiceMock.loadImageIcon(selectedImageFileMock,
+        when(imageServiceMock.loadImageIcon(selectedPhotoFileMock,
                 SHOW_IMAGE_PANEL_WIDTH, SHOW_IMAGE_PANEL_HEIGHT)).thenReturn(imageIconMock);
 
-        testedListSelectionListener.valueChanged(listSelectionEventMock);
+        testedListSelectionListener.valueChanged(sourcePhotoListSelectionEventMock);
 
         verify(showImageLabelMock).setIcon(imageIconMock);
     }
 
     @Test
-    public void shouldClearRemoveDisplayedImageIfSelectionWasRemoved() throws IOException {
-
-        when(sourceImageListMock.getSelectedValue()).thenReturn(null);
-
-        testedListSelectionListener.valueChanged(listSelectionEventMock);
-
-        verify(imageServiceMock, times(0)).loadImageIcon(any(), anyInt(), anyInt());
-        verify(showImageLabelMock).setIcon(null);
-    }
-
-    @Test
     public void shouldDisablePreviousImageButtonIfFirstImageIsSelected() {
 
-        when(sourceImageListModelMock.getSize()).thenReturn(3);
+        when(sourcePhotoListModelMock.getSize()).thenReturn(3);
 
-        when(sourceImageListMock.getSelectedIndex()).thenReturn(0);
+        when(sourcePhotoListMock.getSelectedIndex()).thenReturn(0);
 
-        testedListSelectionListener.valueChanged(listSelectionEventMock);
+        testedListSelectionListener.valueChanged(sourcePhotoListSelectionEventMock);
 
         verify(previousPhotoButtonMock).setEnabled(false);
     }
@@ -283,11 +317,11 @@ public class PhotoViewerFormTest {
     @Test
     public void shouldEnablePreviousImageButtonIfNotFirstImageIsSelected() {
 
-        when(sourceImageListModelMock.getSize()).thenReturn(3);
+        when(sourcePhotoListModelMock.getSize()).thenReturn(3);
 
-        when(sourceImageListMock.getSelectedIndex()).thenReturn(1);
+        when(sourcePhotoListMock.getSelectedIndex()).thenReturn(1);
 
-        testedListSelectionListener.valueChanged(listSelectionEventMock);
+        testedListSelectionListener.valueChanged(sourcePhotoListSelectionEventMock);
 
         verify(previousPhotoButtonMock).setEnabled(true);
     }
@@ -297,11 +331,11 @@ public class PhotoViewerFormTest {
 
         int listSize = 3;
 
-        when(sourceImageListModelMock.getSize()).thenReturn(listSize);
+        when(sourcePhotoListModelMock.getSize()).thenReturn(listSize);
 
-        when(sourceImageListMock.getSelectedIndex()).thenReturn(listSize - 1);
+        when(sourcePhotoListMock.getSelectedIndex()).thenReturn(listSize - 1);
 
-        testedListSelectionListener.valueChanged(listSelectionEventMock);
+        testedListSelectionListener.valueChanged(sourcePhotoListSelectionEventMock);
 
         verify(nextPhotoButtonMock).setEnabled(false);
     }
@@ -311,39 +345,55 @@ public class PhotoViewerFormTest {
 
         int listSize = 3;
 
-        when(sourceImageListModelMock.getSize()).thenReturn(listSize);
+        when(sourcePhotoListModelMock.getSize()).thenReturn(listSize);
 
-        when(sourceImageListMock.getSelectedIndex()).thenReturn(listSize - 2);
+        when(sourcePhotoListMock.getSelectedIndex()).thenReturn(listSize - 2);
 
-        testedListSelectionListener.valueChanged(listSelectionEventMock);
+        testedListSelectionListener.valueChanged(sourcePhotoListSelectionEventMock);
 
         verify(nextPhotoButtonMock).setEnabled(true);
     }
 
     @Test
-    public void shouldDisablePreviousAndNextImageButtonIfListIsEmpty() {
+    public void shouldDisablePreviousAndNextImageButtonIfListHasOnlyOneImage() {
 
-        when(sourceImageListModelMock.getSize()).thenReturn(0);
+        when(sourcePhotoListModelMock.getSize()).thenReturn(1);
 
-        when(sourceImageListMock.getSelectedIndex()).thenReturn(-1);
+        when(sourcePhotoListMock.getSelectedIndex()).thenReturn(0);
 
-        testedListSelectionListener.valueChanged(listSelectionEventMock);
+        testedListSelectionListener.valueChanged(sourcePhotoListSelectionEventMock);
 
         verify(previousPhotoButtonMock).setEnabled(false);
         verify(nextPhotoButtonMock).setEnabled(false);
     }
 
     @Test
-    public void shouldDisablePreviousAndNextImageButtonIfListHasOnlyOneImage() {
+    public void shouldReloadTheTargetingOfTheSelectedPhoto() {
 
-        when(sourceImageListModelMock.getSize()).thenReturn(1);
+        when(photoTargetingServiceMock.getPhotoTargetDirectories(selectedPhotoFileMock)).thenReturn(selectedPhotoTargetDirectories);
 
-        when(sourceImageListMock.getSelectedIndex()).thenReturn(0);
+        testedListSelectionListener.valueChanged(sourcePhotoListSelectionEventMock);
 
-        testedListSelectionListener.valueChanged(listSelectionEventMock);
+        verify(targetDirectoryCheckboxMock1).setSelected(true);
+        verify(targetDirectoryCheckboxMock2).setSelected(false);
+        verify(targetDirectoryCheckboxMock3).setSelected(true);
+    }
 
-        verify(previousPhotoButtonMock).setEnabled(false);
-        verify(nextPhotoButtonMock).setEnabled(false);
+    @Test
+    public void shouldNotActionSourcePhotoSelectionIfSelectedPhotoIsNull() throws Exception {
+
+        when(sourcePhotoListMock.getSelectedValue()).thenReturn(null);
+
+        testedListSelectionListener.valueChanged(sourcePhotoListSelectionEventMock);
+
+        verify(imageServiceMock, times(0)).loadImageIcon(any(File.class), anyInt(), anyInt());
+        verify(showImageLabelMock, times(0)).setIcon(any(ImageIcon.class));
+        verify(photoTargetingServiceMock, times(0)).getPhotoTargetDirectories(any(File.class));
+        verify(targetDirectoryCheckboxMock1, times(0)).setSelected(anyBoolean());
+        verify(targetDirectoryCheckboxMock2, times(0)).setSelected(anyBoolean());
+        verify(targetDirectoryCheckboxMock3, times(0)).setSelected(anyBoolean());
+        verify(nextPhotoButtonMock, times(0)).setEnabled(anyBoolean());
+        verify(previousPhotoButtonMock, times(0)).setEnabled(anyBoolean());
     }
 
     @Test
@@ -351,11 +401,11 @@ public class PhotoViewerFormTest {
 
         int currentSelectedIndex = 5;
 
-        when(sourceImageListMock.getSelectedIndex()).thenReturn(currentSelectedIndex);
+        when(sourcePhotoListMock.getSelectedIndex()).thenReturn(currentSelectedIndex);
 
         testedPreviousImageButtonActionListener.actionPerformed(null);
 
-        verify(sourceImageListMock).setSelectedIndex(currentSelectedIndex - 1);
+        verify(sourcePhotoListMock).setSelectedIndex(currentSelectedIndex - 1);
     }
 
     @Test
@@ -363,11 +413,11 @@ public class PhotoViewerFormTest {
 
         int currentSelectedIndex = 5;
 
-        when(sourceImageListMock.getSelectedIndex()).thenReturn(currentSelectedIndex);
+        when(sourcePhotoListMock.getSelectedIndex()).thenReturn(currentSelectedIndex);
 
         testedNextImageButtonActionListener.actionPerformed(null);
 
-        verify(sourceImageListMock).setSelectedIndex(currentSelectedIndex + 1);
+        verify(sourcePhotoListMock).setSelectedIndex(currentSelectedIndex + 1);
     }
 
     @Test
@@ -375,9 +425,12 @@ public class PhotoViewerFormTest {
 
         testedForm.init();
 
-        String selectedDirectoryName = "selectedDirectory";
+        testedForm.targetDirectoryCheckBoxes = new HashMap<>();
 
-        when(selectedDirectoryMock.getName()).thenReturn(selectedDirectoryName);
+        String selectedDirectoryName = "selectedDirectory";
+        String selectedDirectoryAbsolutePath = "/parent1/parent2/" + selectedDirectoryName;
+        when(selectedTargetDirectoryMock.getName()).thenReturn(selectedDirectoryName);
+        when(selectedTargetDirectoryMock.getAbsolutePath()).thenReturn(selectedDirectoryAbsolutePath);
 
         JPanel addTargetDirectoryToPhotoPanelMock = mock(JPanel.class);
         doReturn(addTargetDirectoryToPhotoPanelMock).when(testedAddTargetDirectoryButtonActionListener).createPanel();
@@ -389,23 +442,86 @@ public class PhotoViewerFormTest {
         doReturn(panelDimensionMock).when(testedAddTargetDirectoryButtonActionListener).
                 createDimension(PhotoViewerForm.ADD_TARGET_DIRECTORY_TO_PHOTO_PANEL_WIDTH, PhotoViewerForm.ADD_TARGET_DIRECTORY_TO_PHOTO_PANEL_HEIGHT);
 
-        JCheckBox targetDirectoryCheckboxMock = mock(JCheckBox.class);
-        doReturn(targetDirectoryCheckboxMock).when(testedAddTargetDirectoryButtonActionListener).createCheckbox();
+        doReturn(targetDirectoryCheckboxMock1).when(testedAddTargetDirectoryButtonActionListener).createCheckbox(selectedDirectoryName);
 
-        JLabel targetDirectoryNameLabelMock = mock(JLabel.class);
-        doReturn(targetDirectoryNameLabelMock).when(testedAddTargetDirectoryButtonActionListener).createLabel(selectedDirectoryName);
-
-        InOrder inTheProperOrder = inOrder(photoTargetingInnerPanelMock, addTargetDirectoryToPhotoPanelMock);
+        InOrder inTheProperOrder = inOrder(photoTargetingInnerPanelMock, addTargetDirectoryToPhotoPanelMock, targetDirectoryCheckboxMock1);
 
         testedAddTargetDirectoryButtonActionListener.actionPerformed(null);
 
         inTheProperOrder.verify(addTargetDirectoryToPhotoPanelMock).setLayout(panelFlowLayoutMock);
         inTheProperOrder.verify(addTargetDirectoryToPhotoPanelMock).setMaximumSize(panelDimensionMock);
-        inTheProperOrder.verify(addTargetDirectoryToPhotoPanelMock).add(targetDirectoryCheckboxMock);
-        inTheProperOrder.verify(addTargetDirectoryToPhotoPanelMock).add(targetDirectoryNameLabelMock);
+        inTheProperOrder.verify(targetDirectoryCheckboxMock1).setName(selectedDirectoryAbsolutePath);
+        inTheProperOrder.verify(targetDirectoryCheckboxMock1).addItemListener(testedTargetDirectoryCheckboxItemListenerMock);
+        inTheProperOrder.verify(addTargetDirectoryToPhotoPanelMock).add(targetDirectoryCheckboxMock1);
         inTheProperOrder.verify(photoTargetingInnerPanelMock).add(addTargetDirectoryToPhotoPanelMock);
         inTheProperOrder.verify(photoTargetingInnerPanelMock).revalidate();
         inTheProperOrder.verify(photoTargetingInnerPanelMock).repaint();
+
+        assertEquals(1, testedForm.targetDirectoryCheckBoxes.size());
+        assertEquals(targetDirectoryCheckboxMock1, testedForm.targetDirectoryCheckBoxes.get(new File(selectedDirectoryAbsolutePath)));
+    }
+
+    @Test
+    public void shouldNotAddTargetDirectoryPanelIfDirectoryChooserWasCancelled() {
+
+        testedForm.init();
+
+        String selectedDirectoryName = "selectedDirectory";
+        String selectedDirectoryAbsolutePath = "/parent1/parent2/" + selectedDirectoryName;
+        when(selectedTargetDirectoryMock.getName()).thenReturn(selectedDirectoryName);
+        when(selectedTargetDirectoryMock.getAbsolutePath()).thenReturn(selectedDirectoryAbsolutePath);
+
+        when(targetDirectoryFileChooserMock.showOpenDialog(photoViewerPanelMock)).thenReturn(JFileChooser.CANCEL_OPTION);
+
+        testedAddTargetDirectoryButtonActionListener.actionPerformed(null);
+
+        verify(targetDirectoryFileChooserMock, times(0)).getSelectedFile();
+    }
+
+    @Test
+    public void shouldAddTargetDirectoryToPhotoOnSelection() {
+
+        String targetDirectoryAbsolutePath = "/parent1/parent2/selectedDirectory";
+
+        when(checkBoxChangedMock.getSource()).thenReturn(targetDirectoryCheckboxMock1);
+
+        when(targetDirectoryCheckboxMock1.isSelected()).thenReturn(true);
+        when(targetDirectoryCheckboxMock1.getName()).thenReturn(targetDirectoryAbsolutePath);
+
+        Integer photoIndex = 5;
+        when(sourcePhotoListMock.getSelectedIndex()).thenReturn(photoIndex);
+
+        File photoFile = new File("photo5");
+        when(sourcePhotoListModelMock.getElementAt(photoIndex)).thenReturn(photoFile);
+        when(sourcePhotoListModelMock.getSize()).thenReturn(photoIndex + 1);
+
+        testedTargetDirectoryCheckboxItemListenerMock.itemStateChanged(checkBoxChangedMock);
+
+        verify(photoTargetingServiceMock).addTargetDirectoryToPhoto(photoFile, new File(targetDirectoryAbsolutePath));
+    }
+
+    @Test
+    public void shouldRemoveTargetDirectoryFromPhotoOnDeSelection() {
+
+        String targetDirectoryAbsolutePath = "/parent1/parent2/selectedDirectory";
+
+        when(checkBoxChangedMock.getSource()).thenReturn(targetDirectoryCheckboxMock1);
+
+        when(targetDirectoryCheckboxMock1.isSelected()).thenReturn(false);
+        when(targetDirectoryCheckboxMock1.getName()).thenReturn(targetDirectoryAbsolutePath);
+
+        Integer photoIndex = 5;
+        when(sourcePhotoListMock.getSelectedIndex()).thenReturn(photoIndex);
+
+        File photoFile = new File("photo5");
+        when(sourcePhotoListModelMock.getElementAt(photoIndex)).thenReturn(photoFile);
+        when(sourcePhotoListModelMock.getSize()).thenReturn(photoIndex + 1);
+
+        when(sourcePhotoListMock.getSelectedValue()).thenReturn(photoFile);
+
+        testedTargetDirectoryCheckboxItemListenerMock.itemStateChanged(checkBoxChangedMock);
+
+        verify(photoTargetingServiceMock).removeTargetDirectoryFromPhoto(photoFile, new File(targetDirectoryAbsolutePath));
     }
 
     private void initImages() {
@@ -416,9 +532,28 @@ public class PhotoViewerFormTest {
         images[1] = new File("test.jpg");
     }
 
+    private void initSelectedPhotoTargetDirectoriesAndCheckboxes() {
+
+        File targetDirectory1 = new File("targetDirectory1");
+        File targetDirectory2 = new File("targetDirectory2");
+        File targetDirectory3 = new File("targetDirectory3");
+
+        selectedPhotoTargetDirectories = new HashSet<>();
+
+        selectedPhotoTargetDirectories.add(targetDirectory1);
+        selectedPhotoTargetDirectories.add(targetDirectory3);
+
+        targetDirectoryCheckboxes = new HashMap<>();
+
+        targetDirectoryCheckboxes.put(targetDirectory1, targetDirectoryCheckboxMock1);
+        targetDirectoryCheckboxes.put(targetDirectory2, targetDirectoryCheckboxMock2);
+        targetDirectoryCheckboxes.put(targetDirectory3, targetDirectoryCheckboxMock3);
+    }
+
     private void initTestedFormToCreateMocks() {
 
-        doReturn(directoryFileChooserMock).when(testedForm).createDirectoryFileChooser();
+        doReturn(sourceDirectoryFileChooserMock).when(testedForm).createSourceDirectoryFileChooser(fileServiceMock);
+        doReturn(targetDirectoryFileChooserMock).when(testedForm).createTargetDirectoryFileChooser();
         doReturn(testedCellRenderer).when(testedForm).createSourceImageListCellRenderer();
         doReturn(testedSourceDirectoryActionListener).when(testedForm).createSelectSourceDirectoryButtonActionListener();
         doReturn(testedListSelectionListener).when(testedForm).createSourceImageListSelectionListener();
@@ -426,12 +561,13 @@ public class PhotoViewerFormTest {
         doReturn(testedPreviousImageButtonActionListener).when(testedForm).createPreviousImageButtonActionListener();
         doReturn(testedAddTargetDirectoryButtonActionListener).when(testedForm).createAddChildButtonActionListener();
         doReturn(boxLayoutMock).when(testedForm).createBoxLayout(photoTargetingInnerPanelMock, BoxLayout.Y_AXIS);
+        doReturn(testedTargetDirectoryCheckboxItemListenerMock).when(testedForm).createTargetDirectoryCheckBoxItemListener();
     }
 
     private void initTestedFormToHaveUIElementMocks() {
 
         testedForm.photoViewerFormPanel = photoViewerPanelMock;
-        testedForm.sourceImageList = sourceImageListMock;
+        testedForm.sourcePhotoList = sourcePhotoListMock;
         testedForm.selectSourceDirectoryButton = selectSourceDirectoryButtonMock;
         testedForm.showImageLabel = showImageLabelMock;
         testedForm.nextPhotoButton = nextPhotoButtonMock;
@@ -440,5 +576,6 @@ public class PhotoViewerFormTest {
         testedForm.addTargetDirectoryButton = addTargetDirectoryButtonMock;
         testedForm.photoTargetingInnerPanel = photoTargetingInnerPanelMock;
         testedForm.photoTargetingScrollPanel = assignToChildrenScrollPanelMock;
+        testedForm.targetDirectoryCheckBoxes = targetDirectoryCheckboxes;
     }
 }

@@ -2,6 +2,7 @@ package com.fct.photo_organizer.ui;
 
 import com.fct.photo_organizer.service.file.FileService;
 import com.fct.photo_organizer.service.image.ImageService;
+import com.fct.photo_organizer.service.photo_targeting.PhotoTargetingService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,11 +16,14 @@ public class PhotoOrganizerFrame {
     private JFrame internalFrame;
     private FileService fileService;
     private ImageService imageService;
+    private PhotoTargetingService photoTargetingService;
 
-    public PhotoOrganizerFrame(FileService fileService, ImageService imageService) {
+    public PhotoOrganizerFrame(FileService fileService, ImageService imageService,
+                               PhotoTargetingService photoTargetingService) {
 
         this.fileService = fileService;
         this.imageService = imageService;
+        this.photoTargetingService = photoTargetingService;
     }
 
     public void init() {
@@ -29,7 +33,7 @@ public class PhotoOrganizerFrame {
         internalFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         internalFrame.setMinimumSize(createDimension(WIDTH, HEIGHT));
 
-        PhotoViewerForm photoViewerForm = createPhotoViewerForm(fileService, imageService);
+        PhotoViewerForm photoViewerForm = createPhotoViewerForm(fileService, imageService, photoTargetingService);
         photoViewerForm.init();
 
         internalFrame.setContentPane(photoViewerForm.getPhotoViewerFormPanel());
@@ -43,8 +47,10 @@ public class PhotoOrganizerFrame {
         return new JFrame();
     }
 
-    PhotoViewerForm createPhotoViewerForm(FileService fileService, ImageService imageService) {
-        return new PhotoViewerForm(fileService, imageService);
+    PhotoViewerForm createPhotoViewerForm(FileService fileService, ImageService imageService,
+                                          PhotoTargetingService photoTargetingService) {
+
+        return new PhotoViewerForm(fileService, imageService, photoTargetingService);
     }
 
     Dimension createDimension(int width, int height) {
@@ -57,5 +63,9 @@ public class PhotoOrganizerFrame {
 
     ImageService getImageService() {
         return imageService;
+    }
+
+    PhotoTargetingService getPhotoTargetingService() {
+        return photoTargetingService;
     }
 }

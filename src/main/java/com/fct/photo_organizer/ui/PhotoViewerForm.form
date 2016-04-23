@@ -19,7 +19,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="f887f" class="javax.swing.JList" binding="sourceImageList">
+          <component id="f887f" class="javax.swing.JList" binding="sourcePhotoList">
             <constraints/>
             <properties>
               <selectionMode value="2"/>

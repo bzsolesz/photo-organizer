@@ -2,6 +2,7 @@ package com.fct.photo_organizer.main;
 
 import com.fct.photo_organizer.service.file.FileService;
 import com.fct.photo_organizer.service.image.ImageService;
+import com.fct.photo_organizer.service.photo_targeting.PhotoTargetingService;
 import com.fct.photo_organizer.ui.PhotoOrganizerFrame;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,15 +25,17 @@ public class PhotoOrganizerMainTest {
     private FileService fileServiceMock;
     @Mock
     private ImageService imageServiceMock;
+    @Mock
+    private PhotoTargetingService photoTargetingServiceMock;
 
     @Before
     public void setup() {
 
         initMocks(this);
 
-        testedRunnable = spy(new PhotoOrganizerFrameRunnable(fileServiceMock, imageServiceMock));
+        testedRunnable = spy(new PhotoOrganizerFrameRunnable(fileServiceMock, imageServiceMock, photoTargetingServiceMock));
 
-        doReturn(photoOrganizerFrameMock).when(testedRunnable).createPhotoOrganizerFrame(fileServiceMock, imageServiceMock);
+        doReturn(photoOrganizerFrameMock).when(testedRunnable).createPhotoOrganizerFrame(fileServiceMock, imageServiceMock, photoTargetingServiceMock);
     }
 
     @Test
