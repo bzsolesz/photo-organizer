@@ -5,10 +5,10 @@ import java.awt.Component;
 import java.awt.HeadlessException;
 import java.io.File;
 
-public class SourceDirectoryFileChooser {
+public class DirectoryFileChooser {
 
     static final String ROOT_DIRECTORY = "/";
-    static final String TITLE = "Select image directory";
+    static final String TITLE = "Select directory";
 
     JFileChooser fileChooser;
 

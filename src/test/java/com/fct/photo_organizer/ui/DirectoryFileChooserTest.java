@@ -8,15 +8,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
-import static com.fct.photo_organizer.ui.SourceDirectoryFileChooser.ROOT_DIRECTORY;
-import static com.fct.photo_organizer.ui.SourceDirectoryFileChooser.TITLE;
+import static com.fct.photo_organizer.ui.DirectoryFileChooser.ROOT_DIRECTORY;
+import static com.fct.photo_organizer.ui.DirectoryFileChooser.TITLE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class SourceDirectoryFileChooserTest {
+public class DirectoryFileChooserTest {
 
-    private SourceDirectoryFileChooser testedFileChooser;
+    private DirectoryFileChooser testedFileChooser;
 
     @Mock
     private JFileChooser fileChooserMock;
@@ -26,7 +26,7 @@ public class SourceDirectoryFileChooserTest {
 
         initMocks(this);
 
-        testedFileChooser = spy(new SourceDirectoryFileChooser());
+        testedFileChooser = spy(new DirectoryFileChooser());
 
         doReturn(fileChooserMock).when(testedFileChooser).createJFileChooser();
     }

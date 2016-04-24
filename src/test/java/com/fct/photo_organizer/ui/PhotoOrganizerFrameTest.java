@@ -2,11 +2,11 @@ package com.fct.photo_organizer.ui;
 
 import com.fct.photo_organizer.service.file.FileService;
 import com.fct.photo_organizer.service.image.ImageService;
+import com.fct.photo_organizer.service.photo_targeting.PhotoTargetingService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,6 +27,8 @@ public class PhotoOrganizerFrameTest {
     @Mock
     private ImageService imageServiceMock;
     @Mock
+    private PhotoTargetingService photoTargetingServiceMock;
+    @Mock
     private JFrame internalFrameMock;
     @Mock
     private PhotoViewerForm photoViewerFormMock;
@@ -40,11 +42,11 @@ public class PhotoOrganizerFrameTest {
 
         initMocks(this);
 
-        testedFrame = spy(new PhotoOrganizerFrame(fileServiceMock, imageServiceMock));
+        testedFrame = spy(new PhotoOrganizerFrame(fileServiceMock, imageServiceMock, photoTargetingServiceMock));
 
         doReturn(internalFrameMock).when(testedFrame).createJFrame();
         doReturn(dimensionMock).when(testedFrame).createDimension(PhotoOrganizerFrame.WIDTH, PhotoOrganizerFrame.HEIGHT);
-        doReturn(photoViewerFormMock).when(testedFrame).createPhotoViewerForm(fileServiceMock, imageServiceMock);
+        doReturn(photoViewerFormMock).when(testedFrame).createPhotoViewerForm(fileServiceMock, imageServiceMock, photoTargetingServiceMock);
 
         when(photoViewerFormMock.getPhotoViewerFormPanel()).thenReturn(photoViewerPanelMock);
 
@@ -59,6 +61,12 @@ public class PhotoOrganizerFrameTest {
     @Test
     public void shouldHaveItsImageService() {
         assertEquals(imageServiceMock, testedFrame.getImageService());
+    }
+
+    @Test
+    public void shouldHaveItsPhotoTargetingService() {
+
+        assertEquals(photoTargetingServiceMock, testedFrame.getPhotoTargetingService());
     }
 
     @Test
