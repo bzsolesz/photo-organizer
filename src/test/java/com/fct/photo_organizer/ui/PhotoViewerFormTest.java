@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.fct.photo_organizer.ui.PhotoViewerForm.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -35,6 +36,7 @@ public class PhotoViewerFormTest {
     private PhotoViewerForm.PreviousImageButtonActionListener testedPreviousImageButtonActionListener;
     private PhotoViewerForm.AddTargetDirectoryButtonActionListener testedAddTargetDirectoryButtonActionListener;
     private PhotoViewerForm.TargetDirectoryCheckBoxItemListener testedTargetDirectoryCheckboxItemListenerMock;
+    private PhotoViewerForm.CopyPhotosButtonActionListener testedCopyPhotosButtonActionListener;
 
     @Mock
     private FileService fileServiceMock;
@@ -88,10 +90,18 @@ public class PhotoViewerFormTest {
     private ItemEvent checkBoxChangedMock;
     @Mock
     private File selectedPhotoFileMock;
+    @Mock
+    private File selectedPhotoFileMock2;
+    @Mock
+    private JButton copyPhotosButtonMock;
 
     private File[] images;
     private Set<File> selectedPhotoTargetDirectories;
+    private Set<File> selectedPhotoTargetDirectories2;
     private HashMap<File, JCheckBox> targetDirectoryCheckboxes;
+    private File targetDirectory1;
+    private File targetDirectory2;
+    private File targetDirectory3;
 
     @Before
     public void setup() {
@@ -106,6 +116,7 @@ public class PhotoViewerFormTest {
         testedNextImageButtonActionListener = testedForm.new NextImageButtonActionListener();
         testedAddTargetDirectoryButtonActionListener = spy(testedForm.new AddTargetDirectoryButtonActionListener());
         testedTargetDirectoryCheckboxItemListenerMock = testedForm.new TargetDirectoryCheckBoxItemListener();
+        testedCopyPhotosButtonActionListener = testedForm.new CopyPhotosButtonActionListener();
 
         initImages();
         initSelectedPhotoTargetDirectoriesAndCheckboxes();
@@ -208,6 +219,14 @@ public class PhotoViewerFormTest {
         testedForm.init();
 
         verify(photoTargetingInnerPanelMock).setLayout(boxLayoutMock);
+    }
+
+    @Test
+    public void shouldInitItsCopyPhotosButtonWithListener() {
+
+        testedForm.init();
+
+        verify(copyPhotosButtonMock).addActionListener(testedCopyPhotosButtonActionListener);
     }
 
     @Test
@@ -440,7 +459,7 @@ public class PhotoViewerFormTest {
 
         Dimension panelDimensionMock = mock(Dimension.class);
         doReturn(panelDimensionMock).when(testedAddTargetDirectoryButtonActionListener).
-                createDimension(PhotoViewerForm.ADD_TARGET_DIRECTORY_TO_PHOTO_PANEL_WIDTH, PhotoViewerForm.ADD_TARGET_DIRECTORY_TO_PHOTO_PANEL_HEIGHT);
+                createDimension(ADD_TARGET_DIRECTORY_TO_PHOTO_PANEL_WIDTH, ADD_TARGET_DIRECTORY_TO_PHOTO_PANEL_HEIGHT);
 
         doReturn(targetDirectoryCheckboxMock1).when(testedAddTargetDirectoryButtonActionListener).createCheckbox(selectedDirectoryName);
 
@@ -524,6 +543,31 @@ public class PhotoViewerFormTest {
         verify(photoTargetingServiceMock).removeTargetDirectoryFromPhoto(photoFile, new File(targetDirectoryAbsolutePath));
     }
 
+    @Test
+    public void shouldCopyPhotosToTheirTargetDirectories() throws IOException {
+
+        Set<File> photos = new HashSet<>();
+        photos.add(selectedPhotoFileMock);
+        photos.add(selectedPhotoFileMock2);
+
+        when(photoTargetingServiceMock.getPhotos()).thenReturn(photos);
+
+        when(photoTargetingServiceMock.getPhotoTargetDirectories(selectedPhotoFileMock)).thenReturn(selectedPhotoTargetDirectories);
+        when(photoTargetingServiceMock.getPhotoTargetDirectories(selectedPhotoFileMock2)).thenReturn(selectedPhotoTargetDirectories2);
+
+        testedCopyPhotosButtonActionListener.actionPerformed(null);
+
+        verify(fileServiceMock).copyPhotoToTargetDirectory(selectedPhotoFileMock, targetDirectory1);
+        verify(fileServiceMock).copyPhotoToTargetDirectory(selectedPhotoFileMock, targetDirectory3);
+
+        verify(fileServiceMock).copyPhotoToTargetDirectory(selectedPhotoFileMock2, targetDirectory2);
+        verify(fileServiceMock).copyPhotoToTargetDirectory(selectedPhotoFileMock2, targetDirectory3);
+
+        verify(fileServiceMock, times(0)).copyPhotoToTargetDirectory(selectedPhotoFileMock, targetDirectory2);
+
+        verify(fileServiceMock, times(0)).copyPhotoToTargetDirectory(selectedPhotoFileMock2, targetDirectory1);
+    }
+
     private void initImages() {
 
         images = new File[2];
@@ -534,14 +578,18 @@ public class PhotoViewerFormTest {
 
     private void initSelectedPhotoTargetDirectoriesAndCheckboxes() {
 
-        File targetDirectory1 = new File("targetDirectory1");
-        File targetDirectory2 = new File("targetDirectory2");
-        File targetDirectory3 = new File("targetDirectory3");
+        targetDirectory1 = new File("targetDirectory1");
+        targetDirectory2 = new File("targetDirectory2");
+        targetDirectory3 = new File("targetDirectory3");
 
         selectedPhotoTargetDirectories = new HashSet<>();
+        selectedPhotoTargetDirectories2 = new HashSet<>();
 
         selectedPhotoTargetDirectories.add(targetDirectory1);
         selectedPhotoTargetDirectories.add(targetDirectory3);
+
+        selectedPhotoTargetDirectories2.add(targetDirectory2);
+        selectedPhotoTargetDirectories2.add(targetDirectory3);
 
         targetDirectoryCheckboxes = new HashMap<>();
 
@@ -562,6 +610,7 @@ public class PhotoViewerFormTest {
         doReturn(testedAddTargetDirectoryButtonActionListener).when(testedForm).createAddChildButtonActionListener();
         doReturn(boxLayoutMock).when(testedForm).createBoxLayout(photoTargetingInnerPanelMock, BoxLayout.Y_AXIS);
         doReturn(testedTargetDirectoryCheckboxItemListenerMock).when(testedForm).createTargetDirectoryCheckBoxItemListener();
+        doReturn(testedCopyPhotosButtonActionListener).when(testedForm).createCopyPhotosButtonActionListener();
     }
 
     private void initTestedFormToHaveUIElementMocks() {
@@ -577,5 +626,6 @@ public class PhotoViewerFormTest {
         testedForm.photoTargetingInnerPanel = photoTargetingInnerPanelMock;
         testedForm.photoTargetingScrollPanel = assignToChildrenScrollPanelMock;
         testedForm.targetDirectoryCheckBoxes = targetDirectoryCheckboxes;
+        testedForm.copyPhotosButton = copyPhotosButtonMock;
     }
 }

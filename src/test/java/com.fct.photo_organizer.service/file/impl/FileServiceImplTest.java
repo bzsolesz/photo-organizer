@@ -3,13 +3,9 @@ package com.fct.photo_organizer.service.file.impl;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -34,18 +30,24 @@ public class FileServiceImplTest {
     private File jpgImageFileMock2;
     @Mock
     private File otherFileMock;
+    @Mock
+    private File targetFileMock;
 
     @Before
     public void setUp() {
 
         initMocks(this);
 
-        testedService = new FileServiceImpl();
+        testedService = spy(new FileServiceImpl());
         testedFilter = new FileServiceImpl.ImageFileFilter();
 
         initSubDirectoryMocks();
         initImageFileMocks();
         initOtherFileMocks();
+
+        String fileName = jpgImageFileMock1.getName();
+
+        doReturn(targetFileMock).when(testedService).createFile(targetDirectoryMock, fileName);
     }
 
 
@@ -96,6 +98,22 @@ public class FileServiceImplTest {
 
         assertTrue(testedFilter.accept(pngImageFileMock1));
         assertTrue(testedFilter.accept(pngImageFileMock2));
+    }
+
+    @Test
+    public void shouldReturnFalseIfFileDoesNotExistInTargetDirectory() {
+
+        when(targetFileMock.exists()).thenReturn(false);
+
+        assertFalse(testedService.doesPhotoExistInTargetDirectory(jpgImageFileMock1, targetDirectoryMock));
+    }
+
+    @Test
+    public void shouldReturnTrueIfFileExistsInTargetDirectory() {
+
+        when(targetFileMock.exists()).thenReturn(true);
+
+        assertTrue(testedService.doesPhotoExistInTargetDirectory(jpgImageFileMock1, targetDirectoryMock));
     }
 
     private void initSubDirectoryMocks() {

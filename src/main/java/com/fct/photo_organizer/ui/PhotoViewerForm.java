@@ -41,6 +41,7 @@ public class PhotoViewerForm {
     private JLabel sourceDirectoryLabel;
     private JPanel targetDirectoriesPanel;
     private JLabel targetDirectoriesLabel;
+    JButton copyPhotosButton;
     DirectoryFileChooser targetDirectoryFileChooser;
     PhotoDirectoryFileChooser sourceDirectoryFileChooser;
 
@@ -69,6 +70,7 @@ public class PhotoViewerForm {
         initImageNavigationButtons();
         initAddChildButton();
         initAssignToChildrenPanel();
+        initCopyPhotosButton();
     }
 
     private void initSourceDirectoryFileChooser() {
@@ -112,6 +114,11 @@ public class PhotoViewerForm {
         photoTargetingInnerPanel.setLayout(createBoxLayout(photoTargetingInnerPanel, BoxLayout.Y_AXIS));
     }
 
+    private void initCopyPhotosButton() {
+
+        copyPhotosButton.addActionListener(createCopyPhotosButtonActionListener());
+    }
+
     PhotoDirectoryFileChooser createSourceDirectoryFileChooser(FileService fileService) {
         return new PhotoDirectoryFileChooser(fileService);
     }
@@ -152,6 +159,10 @@ public class PhotoViewerForm {
         return new BoxLayout(target, axis);
     }
 
+    CopyPhotosButtonActionListener createCopyPhotosButtonActionListener() {
+        return new CopyPhotosButtonActionListener();
+    }
+
     JPanel getPhotoViewerFormPanel() {
 
         return photoViewerFormPanel;
@@ -173,21 +184,21 @@ public class PhotoViewerForm {
      */
     private void $$$setupUI$$$() {
         photoViewerFormPanel = new JPanel();
-        photoViewerFormPanel.setLayout(new GridLayoutManager(3, 5, new Insets(10, 10, 10, 10), -1, -1));
+        photoViewerFormPanel.setLayout(new GridLayoutManager(4, 5, new Insets(10, 10, 10, 10), -1, -1));
         sourceImageScrollPanel = new JScrollPane();
-        photoViewerFormPanel.add(sourceImageScrollPanel, new GridConstraints(1, 0, 2, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, 600), new Dimension(175, 600), new Dimension(175, 600), 0, false));
+        photoViewerFormPanel.add(sourceImageScrollPanel, new GridConstraints(1, 0, 3, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, 600), new Dimension(175, 600), new Dimension(175, 600), 0, false));
         sourcePhotoList = new JList();
         sourcePhotoList.setSelectionMode(2);
         sourceImageScrollPanel.setViewportView(sourcePhotoList);
         showImagePanel = new JPanel();
         showImagePanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(showImagePanel, new GridConstraints(1, 3, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(800, 600), new Dimension(800, 600), new Dimension(800, 600), 0, false));
+        photoViewerFormPanel.add(showImagePanel, new GridConstraints(1, 3, 3, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(800, 600), new Dimension(800, 600), new Dimension(800, 600), 0, false));
         showImageLabel = new JLabel();
         showImageLabel.setText("");
         showImagePanel.add(showImageLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(146, 0), null, 0, false));
         imageNavigationPanel = new JPanel();
         imageNavigationPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(imageNavigationPanel, new GridConstraints(1, 2, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        photoViewerFormPanel.add(imageNavigationPanel, new GridConstraints(1, 2, 3, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         previousPhotoButton = new JButton();
         previousPhotoButton.setEnabled(false);
         previousPhotoButton.setText("Prev");
@@ -198,7 +209,7 @@ public class PhotoViewerForm {
         imageNavigationPanel.add(nextPhotoButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         assignmentPanel = new JPanel();
         assignmentPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        photoViewerFormPanel.add(assignmentPanel, new GridConstraints(1, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, 600), new Dimension(175, 600), new Dimension(175, 600), 0, false));
+        photoViewerFormPanel.add(assignmentPanel, new GridConstraints(1, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(175, 550), new Dimension(175, 550), new Dimension(175, 550), 0, false));
         photoTargetingScrollPanel = new JScrollPane();
         photoTargetingScrollPanel.setEnabled(false);
         photoTargetingScrollPanel.setHorizontalScrollBarPolicy(30);
@@ -235,6 +246,9 @@ public class PhotoViewerForm {
         targetDirectoriesLabel = new JLabel();
         targetDirectoriesLabel.setText("Target Directories");
         targetDirectoriesPanel.add(targetDirectoriesLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        copyPhotosButton = new JButton();
+        copyPhotosButton.setText("Copy");
+        photoViewerFormPanel.add(copyPhotosButton, new GridConstraints(2, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**
@@ -448,6 +462,31 @@ public class PhotoViewerForm {
 
                 photoTargetingService.removeTargetDirectoryFromPhoto(selectedPhoto, targetDirectory);
             }
+        }
+    }
+
+    class CopyPhotosButtonActionListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent event) {
+
+            Set<File> photos = photoTargetingService.getPhotos();
+
+            photos.forEach(photo -> {
+
+                Set<File> targetDirectories = photoTargetingService.getPhotoTargetDirectories(photo);
+
+                targetDirectories.forEach(targetDirectory -> {
+
+                    try {
+                        fileService.copyPhotoToTargetDirectory(photo, targetDirectory);
+
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(photoViewerFormPanel, "An error happened!",
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                });
+            });
         }
     }
 }

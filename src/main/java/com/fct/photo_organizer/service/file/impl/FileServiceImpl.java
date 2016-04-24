@@ -1,23 +1,40 @@
 package com.fct.photo_organizer.service.file.impl;
 
 import com.fct.photo_organizer.service.file.FileService;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by zsolt_balogh on 20/03/2016.
- */
 public class FileServiceImpl implements FileService {
 
     @Override
     public File[] getImageFilesInDirectory(File targetDirectory) {
 
         return targetDirectory.listFiles(new ImageFileFilter());
+    }
+
+    @Override
+    public boolean doesPhotoExistInTargetDirectory(File photo, File targetDirectory) {
+
+        File targetFile = createFile(targetDirectory, photo.getName());
+
+        return targetFile.exists();
+    }
+
+    @Override
+    public void copyPhotoToTargetDirectory(File photo, File targetDirectory) throws IOException {
+
+        FileUtils.copyFileToDirectory(photo, targetDirectory);
+    }
+
+    File createFile(File targetDirectory, String photoFileName) {
+        return new File(targetDirectory, photoFileName);
     }
 
     static class ImageFileFilter implements FileFilter {
