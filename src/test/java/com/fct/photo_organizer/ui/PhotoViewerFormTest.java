@@ -16,9 +16,11 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.fct.photo_organizer.ui.PhotoViewerForm.*;
+import static com.fct.photo_organizer.ui.PhotoViewerForm.FILE_EXIST_CONFIRMATION_OPTIONS.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -116,7 +118,7 @@ public class PhotoViewerFormTest {
         testedNextImageButtonActionListener = testedForm.new NextImageButtonActionListener();
         testedAddTargetDirectoryButtonActionListener = spy(testedForm.new AddTargetDirectoryButtonActionListener());
         testedTargetDirectoryCheckboxItemListenerMock = testedForm.new TargetDirectoryCheckBoxItemListener();
-        testedCopyPhotosButtonActionListener = testedForm.new CopyPhotosButtonActionListener();
+        testedCopyPhotosButtonActionListener = spy(testedForm.new CopyPhotosButtonActionListener());
 
         initImages();
         initSelectedPhotoTargetDirectoriesAndCheckboxes();
@@ -546,6 +548,8 @@ public class PhotoViewerFormTest {
     @Test
     public void shouldCopyPhotosToTheirTargetDirectories() throws IOException {
 
+        doReturn(false).when(fileServiceMock).doesPhotoExistInTargetDirectory(any(File.class), any(File.class));
+
         Set<File> photos = new HashSet<>();
         photos.add(selectedPhotoFileMock);
         photos.add(selectedPhotoFileMock2);
@@ -566,6 +570,59 @@ public class PhotoViewerFormTest {
         verify(fileServiceMock, times(0)).copyPhotoToTargetDirectory(selectedPhotoFileMock, targetDirectory2);
 
         verify(fileServiceMock, times(0)).copyPhotoToTargetDirectory(selectedPhotoFileMock2, targetDirectory1);
+    }
+
+    @Test
+    public void shouldOverrideFileIfAlreadyExistAndOverrideWasSelected() throws IOException {
+
+        setupFileExistDialogTestCases(Override);
+
+        testedCopyPhotosButtonActionListener.actionPerformed(null);
+
+        verify(fileServiceMock).copyPhotoToTargetDirectory(selectedPhotoFileMock, targetDirectory1);
+    }
+
+    @Test
+    public void shouldSkipFileIfAlreadyExistAndSkipWasSelected() throws IOException {
+
+        setupFileExistDialogTestCases(Skip);
+
+        testedCopyPhotosButtonActionListener.actionPerformed(null);
+
+        verify(fileServiceMock, times(0)).copyPhotoToTargetDirectory(any(File.class), any(File.class));
+    }
+
+    @Test
+    public void shouldCopyFileWithNewNameIfExistAndRenameWasSelected() throws IOException {
+
+        Calendar timestampMock = Calendar.getInstance();
+        doReturn(timestampMock).when(testedCopyPhotosButtonActionListener).getTimeStamp();
+
+        when(selectedPhotoFileMock.getName()).thenReturn("photo.png");
+
+        SimpleDateFormat timeStampFormatter = new SimpleDateFormat("ddMMyyyy_HHmmss");
+        String expectedNewPhotoName = "photo_" + timeStampFormatter.format(timestampMock.getTime()) + ".png";
+
+        setupFileExistDialogTestCases(Rename);
+
+        testedCopyPhotosButtonActionListener.actionPerformed(null);
+
+        verify(fileServiceMock).copyPhotoToTargetDirectory(selectedPhotoFileMock, targetDirectory1, expectedNewPhotoName);
+    }
+
+    private void setupFileExistDialogTestCases(FILE_EXIST_CONFIRMATION_OPTIONS selectedDialogOption) {
+
+        doReturn(true).when(fileServiceMock).doesPhotoExistInTargetDirectory(selectedPhotoFileMock, targetDirectory1);
+
+        doReturn(selectedDialogOption.ordinal()).
+                when(testedCopyPhotosButtonActionListener).showPhotoExistDialog(selectedPhotoFileMock, targetDirectory1);
+
+
+        Set<File> photos = new HashSet<>(Arrays.asList(selectedPhotoFileMock));
+        when(photoTargetingServiceMock.getPhotos()).thenReturn(photos);
+
+        selectedPhotoTargetDirectories = new HashSet<>(Arrays.asList(targetDirectory1));
+        when(photoTargetingServiceMock.getPhotoTargetDirectories(selectedPhotoFileMock)).thenReturn(selectedPhotoTargetDirectories);
     }
 
     private void initImages() {

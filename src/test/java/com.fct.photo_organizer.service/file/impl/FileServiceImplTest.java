@@ -6,6 +6,7 @@ import org.mockito.Mock;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -114,6 +115,20 @@ public class FileServiceImplTest {
         when(targetFileMock.exists()).thenReturn(true);
 
         assertTrue(testedService.doesPhotoExistInTargetDirectory(jpgImageFileMock1, targetDirectoryMock));
+    }
+
+    @Test
+    public void shouldCopyPhotoWithNewNameIfExistInTargetDirectory() throws IOException {
+
+        doAnswer(invocation -> {return null;}).when(testedService).copyFileWithNewName(any(File.class), any(File.class));
+
+        File oldPhoto = new File("/root/dir1/dir2/oldName.jpg");
+        File targetDirectory = new File("/root/dir1/targetDir");
+        File newCopiedPhoto = new File("/root/dir1/targetDir/newName.jpg");
+
+        testedService.copyPhotoToTargetDirectory(oldPhoto, targetDirectory, "newName.jpg");
+
+        verify(testedService).copyFileWithNewName(oldPhoto, newCopiedPhoto);
     }
 
     private void initSubDirectoryMocks() {

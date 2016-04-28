@@ -7,9 +7,6 @@ import org.apache.commons.io.FilenameUtils;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
 
 public class FileServiceImpl implements FileService {
 
@@ -31,6 +28,19 @@ public class FileServiceImpl implements FileService {
     public void copyPhotoToTargetDirectory(File photo, File targetDirectory) throws IOException {
 
         FileUtils.copyFileToDirectory(photo, targetDirectory);
+    }
+
+    @Override
+    public void copyPhotoToTargetDirectory(File photo, File targetDirectory, String newPhotoName) throws IOException {
+
+        File renamedPhotoFile = new File(targetDirectory, newPhotoName);
+
+        copyFileWithNewName(photo, renamedPhotoFile);
+    }
+
+    void copyFileWithNewName(File file, File newFile) throws IOException {
+
+        FileUtils.copyFile(file, newFile);
     }
 
     File createFile(File targetDirectory, String photoFileName) {

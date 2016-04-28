@@ -11,4 +11,6 @@ public interface FileService {
     boolean doesPhotoExistInTargetDirectory(File photo, File targetDirectory);
 
     void copyPhotoToTargetDirectory(File photo, File targetDirectory) throws IOException;
+
+    void copyPhotoToTargetDirectory(File photo, File targetDirectory, String newPhotoName) throws IOException;
 }
